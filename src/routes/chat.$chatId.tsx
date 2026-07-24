@@ -58,9 +58,9 @@ function ChatPage() {
       if (cancelled) return;
       if (!c) { toast.error("Chat not found"); navigate({ to: "/match" }); return; }
       setChat(c as ChatRow);
-      const partnerId = c.user1_id === user.id ? c.user2_id : c.user1_id;
-      const { data: p } = await supabase.from("profiles").select("name").eq("id", partnerId).maybeSingle();
-      if (!cancelled && p) setPartnerName(p.name);
+      const { data: p } = await supabase.rpc("get_chat_partner", { _chat_id: chatId });
+      const partner = Array.isArray(p) ? p[0] : p;
+      if (!cancelled && partner?.name) setPartnerName(partner.name);
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true });
       if (!cancelled) setMessages((msgs ?? []) as Message[]);
     })();
