@@ -29,12 +29,20 @@ function MatchPage() {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [lookingFor, setLookingFor] = useState<LookingFor>("female");
+  const [slowLoad, setSlowLoad] = useState(false);
   const cancelledRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (!authLoading && user && !profile) {
+      const t = setTimeout(() => setSlowLoad(true), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [authLoading, user, profile]);
 
   useEffect(() => {
     if (profile?.gender === "male") setLookingFor("female");
