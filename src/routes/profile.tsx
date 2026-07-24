@@ -45,17 +45,26 @@ function ProfilePage() {
 
   const save = async () => {
     if (!user) return;
+    if (!name.trim() || !age || Number(age) < 18) {
+      toast.error("Enter a name and a valid age (18+).");
+      return;
+    }
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({
-      name: name.trim(), age: Number(age), gender,
-    }).eq("id", user.id);
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id, name: name.trim(), age: Number(age), gender,
+    });
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error("[profile] save error", error);
+      toast.error(error.message);
+      return;
+    }
     await refreshProfile();
-    toast.success("Profile updated");
+    toast.success("Profile saved");
+    if (!profile) navigate({ to: "/match" });
   };
 
-  if (loading || !profile) {
+  if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
