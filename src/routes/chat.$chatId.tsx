@@ -133,7 +133,7 @@ function ChatPage() {
 
   const blockPartner = async () => {
     if (!partnerId) return;
-    await supabase.from("blocks").insert({ blocked_id: partnerId });
+    await supabase.from("blocks").insert({ blocker_id: user!.id, blocked_id: partnerId });
     await supabase.rpc("end_chat", { _chat_id: chatId });
     toast.success("User blocked.");
     navigate({ to: "/match" });
@@ -141,7 +141,7 @@ function ChatPage() {
 
   const reportPartner = async () => {
     if (!partnerId) return;
-    await supabase.from("reports").insert({ reported_id: partnerId, chat_id: chatId, reason: reportReason || null });
+    await supabase.from("reports").insert({ reporter_id: user!.id, reported_id: partnerId, chat_id: chatId, reason: reportReason || null });
     toast.success("Report submitted. Thank you.");
     setReportReason("");
   };
