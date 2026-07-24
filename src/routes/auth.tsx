@@ -60,22 +60,65 @@ function AuthPage() {
           password: parsed.data.password,
           options: { emailRedirectTo: window.location.origin },
         });
-        if (error) { toast.error(error.message); return; }
-        const uid = data.user?.id;
-        if (!uid) { toast.error("Sign up failed"); return; }
+        if (error) {
+          console.error("[signup] signUp error", error);
+          toast.error(error.message);
+          return;
+        }
+        if (!data.session) {
+          const { error: siErr } = await supabase.auth.signInWithPassword({
+            email: parsed.data.email,
+            password: parsed.data.password,
+          });
+          if (siErr) {
+            console.error("[signup] auto sign-in failed", siErr);
+            toast.error("Account created. Please check your email to confirm, then sign in.");
+            setMode("signin");
+            return;
+          }
+        }
+        const { data: userData } = await supabase.auth.getUser();
+        const uid = userData.user?.id;
+        if (!uid) {
+          toast.error("Signed up but no session yet — please sign in.");
+          setMode("signin");
+          return;
+        }
         const { error: pErr } = await supabase.from("profiles").upsert({
           id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender,
         });
-        if (pErr) { toast.error(pErr.message); return; }
+        if (pErr) {
+          console.error("[signup] profile upsert error", pErr);
+          toast.error(`Couldn't save profile: ${pErr.message}`);
+          return;
+        }
         await refreshProfile();
         toast.success("Welcome to 1Chance!");
         navigate({ to: "/match" });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { toast.error(error.message); return; }
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          console.error("[signin] error", error);
+          toast.error(error.message);
+          return;
+        }
+        const uid = data.user?.id;
         await refreshProfile();
+        if (uid) {
+          const { data: prof, error: pErr } = await supabase
+            .from("profiles").select("id").eq("id", uid).maybeSingle();
+          if (pErr) console.error("[signin] profile lookup error", pErr);
+          if (!prof) {
+            toast.message("Finish setting up your profile to continue.");
+            navigate({ to: "/profile" });
+            return;
+          }
+        }
         navigate({ to: "/match" });
       }
+    } catch (err) {
+      console.error("[auth] unexpected error", err);
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
