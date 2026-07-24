@@ -14,16 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          ended_by: string | null
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          age: number
+          created_at: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          gender?: Database["public"]["Enums"]["gender_type"]
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          chat_id: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          reported_id: string
+          reporter_id: string
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_id: string
+          reporter_id: string
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_id?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waiting_pool: {
+        Row: {
+          blocked_ids: string[]
+          created_at: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          looking_for: Database["public"]["Enums"]["gender_type"]
+          user_id: string
+        }
+        Insert: {
+          blocked_ids?: string[]
+          created_at?: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          looking_for: Database["public"]["Enums"]["gender_type"]
+          user_id: string
+        }
+        Update: {
+          blocked_ids?: string[]
+          created_at?: string
+          gender?: Database["public"]["Enums"]["gender_type"]
+          looking_for?: Database["public"]["Enums"]["gender_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      end_chat: { Args: { _chat_id: string }; Returns: undefined }
+      find_or_wait_match: {
+        Args: { _looking_for: Database["public"]["Enums"]["gender_type"] }
+        Returns: {
+          chat_id: string
+          matched_with: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      gender_type: "male" | "female" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +319,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender_type: ["male", "female", "other"],
+    },
   },
 } as const
