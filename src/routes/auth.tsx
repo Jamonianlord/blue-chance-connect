@@ -26,7 +26,7 @@ export const Route = createFileRoute("/auth")({
 const signupSchema = z.object({
   name: z.string().trim().min(1, "Enter your name").max(40),
   age: z.number().int().min(18, "You must be 18+").max(120),
-  gender: z.enum(["male", "female", "other"]),
+  gender: z.enum(["male", "female"]),
   email: z.string().trim().email().max(255),
   password: z.string().min(6, "Min 6 characters").max(72),
 });
@@ -39,7 +39,7 @@ function AuthPage() {
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
-  const [gender, setGender] = useState<"male" | "female" | "other">("male");
+  const [gender, setGender] = useState<"male" | "female">("male");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -114,7 +114,7 @@ function AuthPage() {
                   <div>
                     <Label>Gender</Label>
                     <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 flex gap-2">
-                      {(["male", "female", "other"] as const).map(g => (
+                      {(["male", "female"] as const).map(g => (
                         <label
                           key={g}
                           className={"flex-1 cursor-pointer rounded-lg border px-2 py-1.5 text-center text-xs capitalize transition " +
