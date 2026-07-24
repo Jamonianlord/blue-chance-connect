@@ -28,7 +28,7 @@ function ProfilePage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
-  const [gender, setGender] = useState<"male" | "female" | "other">("male");
+  const [gender, setGender] = useState<"male" | "female">("male");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function ProfilePage() {
     if (profile) {
       setName(profile.name);
       setAge(String(profile.age));
-      setGender(profile.gender);
+      setGender(profile.gender === "other" ? "male" : profile.gender);
     }
   }, [profile]);
 
@@ -81,8 +81,8 @@ function ProfilePage() {
           </div>
           <div>
             <Label>Gender</Label>
-            <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 grid grid-cols-3 gap-2">
-              {(["male", "female", "other"] as const).map(g => (
+            <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 grid grid-cols-2 gap-2">
+              {(["male", "female"] as const).map(g => (
                 <Label
                   key={g}
                   className={"cursor-pointer rounded-xl border px-3 py-2 text-center text-sm capitalize " +
