@@ -190,6 +190,13 @@ export type Database = {
           matched_with: string
         }[]
       }
+      get_chat_partner: {
+        Args: { _chat_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
     }
     Enums: {
       gender_type: "male" | "female" | "other"
