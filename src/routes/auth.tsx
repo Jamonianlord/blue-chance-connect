@@ -106,18 +106,18 @@ function AuthPage() {
                   <Label htmlFor="name">Your name (Nickname can be used)</Label>
                   <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Alex" required />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="age">Age</Label>
                     <Input id="age" type="number" min={18} value={age} onChange={e => setAge(e.target.value)} placeholder="18+" required />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Gender</Label>
                     <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 flex gap-2">
                       {(["male", "female"] as const).map(g => (
                         <label
                           key={g}
-                          className={"flex-1 cursor-pointer rounded-lg border px-2 py-1.5 text-center text-xs capitalize transition " +
+                          className={"flex-1 cursor-pointer rounded-lg border px-2 py-2 text-center text-sm capitalize transition " +
                             (gender === g ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]" : "border-border")}
                         >
                           <RadioGroupItem value={g} className="sr-only" />
