@@ -82,11 +82,11 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex justify-center"><Link to="/"><Logo /></Link></div>
-        <div className="rounded-3xl border border-border bg-white p-8 shadow-xl">
-          <div className="mb-6 flex rounded-full bg-muted p-1 text-sm font-medium">
+        <div className="mb-4 flex justify-center sm:mb-6"><Link to="/"><Logo /></Link></div>
+        <div className="rounded-2xl border border-border bg-white p-5 shadow-xl sm:rounded-3xl sm:p-8">
+          <div className="mb-5 flex rounded-full bg-muted p-1 text-sm font-medium sm:mb-6">
             <button
               type="button"
               onClick={() => setMode("signup")}
@@ -106,18 +106,18 @@ function AuthPage() {
                   <Label htmlFor="name">Your name (Nickname can be used)</Label>
                   <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Alex" required />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="age">Age</Label>
                     <Input id="age" type="number" min={18} value={age} onChange={e => setAge(e.target.value)} placeholder="18+" required />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Gender</Label>
                     <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 flex gap-2">
                       {(["male", "female"] as const).map(g => (
                         <label
                           key={g}
-                          className={"flex-1 cursor-pointer rounded-lg border px-2 py-1.5 text-center text-xs capitalize transition " +
+                          className={"flex-1 cursor-pointer rounded-lg border px-2 py-2 text-center text-sm capitalize transition " +
                             (gender === g ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]" : "border-border")}
                         >
                           <RadioGroupItem value={g} className="sr-only" />
