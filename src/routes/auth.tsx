@@ -82,11 +82,11 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex justify-center"><Link to="/"><Logo /></Link></div>
-        <div className="rounded-3xl border border-border bg-white p-8 shadow-xl">
-          <div className="mb-6 flex rounded-full bg-muted p-1 text-sm font-medium">
+        <div className="mb-4 flex justify-center sm:mb-6"><Link to="/"><Logo /></Link></div>
+        <div className="rounded-2xl border border-border bg-white p-5 shadow-xl sm:rounded-3xl sm:p-8">
+          <div className="mb-5 flex rounded-full bg-muted p-1 text-sm font-medium sm:mb-6">
             <button
               type="button"
               onClick={() => setMode("signup")}
