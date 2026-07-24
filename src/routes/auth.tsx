@@ -103,7 +103,7 @@ function AuthPage() {
             {mode === "signup" && (
               <>
                 <div>
-                  <Label htmlFor="name">Your name</Label>
+                  <Label htmlFor="name">Your name (Nickname can be used)</Label>
                   <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Alex" required />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
