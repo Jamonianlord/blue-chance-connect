@@ -106,8 +106,23 @@ function MatchPage() {
 
   if (authLoading || !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
         <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+        {slowLoad && (
+          <div className="max-w-sm space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This is taking longer than expected. Your profile may not be set up yet.
+            </p>
+            <div className="flex justify-center gap-2">
+              <Button variant="outline" onClick={() => navigate({ to: "/profile" })}>
+                Complete profile
+              </Button>
+              <Button variant="ghost" onClick={() => window.location.reload()}>
+                Try again
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
