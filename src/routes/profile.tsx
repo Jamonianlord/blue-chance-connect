@@ -31,6 +31,9 @@ function ProfilePage() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -41,8 +44,35 @@ function ProfilePage() {
       setName(profile.name);
       setAge(String(profile.age));
       setGender(profile.gender === "other" ? "male" : profile.gender);
+      setAvatarPath(profile.avatar_url ?? null);
     }
   }, [profile]);
+
+  const onPickAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image."); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB."); return; }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile-photos")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+      if (dbErr) throw dbErr;
+      setAvatarPath(path);
+      await refreshProfile();
+      toast.success("Photo updated");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      console.error("[profile] avatar upload", e);
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!user) return;
