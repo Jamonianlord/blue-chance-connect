@@ -122,6 +122,17 @@ DECLARE
   _my_blocks UUID[];
 BEGIN
   IF _me IS NULL THEN RAISE EXCEPTION 'not authenticated'; END IF;
+  
+  -- Check if user already has an active chat
+  PERFORM 1 FROM public.chats c
+  WHERE (c.user1_id = _me OR c.user2_id = _me)
+    AND c.ended_at IS NULL
+  LIMIT 1;
+  
+  IF FOUND THEN
+    RETURN QUERY SELECT NULL::UUID, NULL::UUID;
+    RETURN;
+  END IF;
 
   SELECT gender INTO _my_gender FROM public.profiles WHERE id = _me;
   IF _my_gender IS NULL THEN RAISE EXCEPTION 'no profile'; END IF;

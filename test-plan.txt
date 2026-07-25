@@ -1,0 +1,51 @@
+TEST PLAN FOR MATCHMAKING SYSTEM
+
+1. Setup:
+   - Create 6 test users (3 males, 3 females) with complete profiles
+   - Ensure all users have verified email and active sessions
+
+2. Test Case 1: Normal matching (3 pairs)
+   - Have 3 male-female pairs click "Start chatting" simultaneously
+   - Verify each pair is matched within 8-12 seconds (2 polling cycles)
+   - Check that no user is matched with themselves
+   - Verify chat creation in database
+
+3. Test Case 2: Race condition (same second matching)
+   - Have 2 male-female pairs click "Start chatting" at exactly the same time
+   - Verify each pair gets a unique match (no cross-matching)
+   - Check that waiting_pool is properly updated (users removed from pool)
+
+4. Test Case 3: Already-chatting fallback
+   - Have 3 users already in active chats
+   - Have 2 new users (opposite genders) try to match
+   - Verify new users are matched among themselves or with waiting users
+   - Confirm existing chats remain unaffected
+
+5. Test Case 4: Tab closure without action
+   - Have a user click "Start chatting" and enter waiting state
+   - Close tab/browser without clicking anything
+   - Verify user is removed from waiting_pool within 1 second
+   - Check no orphaned records remain
+
+6. Test Case 5: Network interruption
+   - Have a user in waiting state with poor connection
+   - Simulate 5-second network drop
+   - Verify user is matched within 4-8 seconds after reconnection
+   - Check no duplicate matches or stuck states
+
+7. Test Case 6: High concurrency (10 users)
+   - Have 5 male-female pairs click "Start chatting" simultaneously
+   - Verify all 5 pairs are matched correctly
+   - Check system performance under load
+
+8. Validation:
+   - All tests must pass with 100% success rate
+   - No user should remain in waiting state > 15 seconds
+   - No deadlocks or inconsistent states observed
+   - All edge cases handled gracefully
+
+DEPLOYMENT INSTRUCTIONS:
+1. Run migration: npx supabase db push
+2. Restart dev server: npm run dev
+3. Verify changes in match.tsx and RPC function
+4. Run comprehensive test suite

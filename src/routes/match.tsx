@@ -29,9 +29,11 @@ function MatchPage() {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [lookingFor, setLookingFor] = useState<LookingFor>("female");
+  const [searchingCount, setSearchingCount] = useState(0);
   const [slowLoad, setSlowLoad] = useState(false);
   const cancelledRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -49,11 +51,18 @@ function MatchPage() {
     else if (profile?.gender === "female") setLookingFor("male");
   }, [profile]);
 
-  const stopSearch = async () => {
+const stopSearch = async () => {
     cancelledRef.current = true;
     setSearching(false);
     if (pollRef.current) clearInterval(pollRef.current);
     if (user) await supabase.from("waiting_pool").delete().eq("user_id", user.id);
+    // Clean up presence
+    if (presenceRef.current) {
+      presenceRef.current?.untrack(); // Remove our presence tracking
+      supabase.removeChannel(presenceRef.current);
+      presenceRef.current = null;
+      setSearchingCount(0); // Reset count when we stop searching
+    }
   };
 
   const startSearch = async () => {
@@ -164,19 +173,24 @@ function MatchPage() {
     };
   };
 
-  useEffect(() => {
+useEffect(() => {
     const handleBeforeUnload = () => {
       if (user) {
         supabase.from("waiting_pool").delete().eq("user_id", user.id);
       }
+      // Clean up presence on unload
+      if (presenceRef.current) {
+        presenceRef.current?.untrack(); // Remove our presence tracking
+        supabase.removeChannel(presenceRef.current);
+        presenceRef.current = null;
+      }
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    const handleVisibility = () => {
+    
+    const handleVisibility = async () => {
       if (document.visibilityState === "visible" && searching && user) {
         console.log("[match] tab visible, re-checking match state...");
         // Force an immediate poll check when returning to the tab
-        const { data: existingChats } = supabase
+        const { data: existingChats } = await supabase
           .from("chats")
           .select("id")
           .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
@@ -188,17 +202,74 @@ function MatchPage() {
         }
       }
     };
+    
+    // Set up presence tracking when searching starts
+    if (searching && user) {
+      // Presence channel for tracking who's currently searching
+      const presenceChannel = supabase.channel('presence:online-users', {
+        config: {
+          broadcast: { self: false },
+          presence: { 
+            // Will store { searching: boolean, lookingFor: string }
+          }
+        }
+      });
+      
+      // Track presence state changes
+      presenceChannel
+        .on('presence', { event: 'join' }, () => {
+          // Update count when someone joins
+          const state = presenceChannel?.presenceState();
+            const count = state ? Object.keys(state).length : 0;
+            setSearchingCount(count);
+        })
+        .on('presence', { event: 'leave' }, () => {
+          // Update count when someone leaves
+          const state = presenceChannel?.presenceState();
+            const count = state ? Object.keys(state).length : 0;
+            setSearchingCount(count);
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            // Set our initial presence state when subscribed
+            presenceChannel?.track({
+              searching: true,
+              lookingFor: lookingFor
+            });
+          }
+        });
+      
+      // Store reference to cleanup later
+      presenceRef.current = presenceChannel;
+    } else if (!searching && presenceRef.current) {
+      // Clean up presence when searching stops
+      presenceRef.current?.untrack(); // Remove our presence tracking
+      if (presenceRef.current) {
+        supabase.removeChannel(presenceRef.current);
+        presenceRef.current = null;
+      }
+      setSearchingCount(0); // Reset count when we stop searching
+    }
+    
+    window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("visibilitychange", handleVisibility);
-
+    
     return () => {
       cancelledRef.current = true;
       if (pollRef.current) clearInterval(pollRef.current);
       if (user) supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      // Clean up presence
+      if (presenceRef.current) {
+        presenceRef.current?.untrack(); // Remove our presence tracking
+        if (presenceRef.current) {
+          supabase.removeChannel(presenceRef.current);
+          presenceRef.current = null;
+        }
+      }
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("visibilitychange", handleVisibility);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searching, user, lookingFor]);
 
   if (authLoading || !profile) {
     return (
@@ -251,26 +322,32 @@ function MatchPage() {
             </Button>
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center text-center">
-            <div className="relative flex h-40 w-40 items-center justify-center">
-              <div className="absolute inset-0 animate-ping rounded-full bg-[var(--brand)]/20" />
-              <div className="absolute inset-4 animate-pulse rounded-full bg-[var(--brand)]/30" />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
-                <Loader2 className="h-10 w-10 animate-spin text-white" />
-              </div>
-            </div>
-            <h2 className="mt-8 text-2xl font-bold">Finding your match…</h2>
-            <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-              Hang tight — we're looking for someone online right now who wants to chat.
-            </p>
-            <Button
-              onClick={stopSearch}
-              variant="outline"
-              className="mt-8 rounded-full"
-            >
-              <X className="mr-1 h-4 w-4" /> Cancel
-            </Button>
-          </div>
+<div className="flex w-full flex-col items-center text-center">
+             <div className="relative flex h-40 w-40 items-center justify-center">
+               <div className="absolute inset-0 animate-ping rounded-full bg-[var(--brand)]/20" />
+               <div className="absolute inset-4 animate-pulse rounded-full bg-[var(--brand)]/30" />
+               <div className="relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
+                 <Loader2 className="h-10 w-10 animate-spin text-white" />
+               </div>
+             </div>
+             <h2 className="mt-8 text-2xl font-bold">Finding your match…</h2>
+             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+               {searchingCount > 0 ? (
+            <>
+              <span className="font-medium">{searchingCount}</span> {searchingCount === 1 ? "person" : "people"} online now
+            </>
+          ) : (
+            "Hang tight — we're looking for someone online right now who wants to chat."
+          )}
+             </p>
+             <Button
+               onClick={stopSearch}
+               variant="outline"
+               className="mt-8 rounded-full"
+             >
+               <X className="mr-1 h-4 w-4" /> Cancel
+             </Button>
+           </div>
         )}
       </main>
     </div>

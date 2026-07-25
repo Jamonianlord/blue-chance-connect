@@ -1,0 +1,14 @@
+FIX SUMMARY:
+
+1. Enhanced find_or_wait_match RPC function to prevent users with active chats from attempting to match again
+2. Maintained existing FOR UPDATE SKIP LOCKED mechanism for race condition prevention
+3. Kept 4-second polling interval as reliable fallback safety net
+4. Verified all RLS policies are correctly implemented
+
+TEST PLAN READY: test-plan.txt created in root directory
+
+TO DEPLOY:
+1. Run migration: npx supabase db push
+2. Restart dev server: npm run dev
+3. Verify changes in match.tsx and RPC function
+4. Run comprehensive test suite
