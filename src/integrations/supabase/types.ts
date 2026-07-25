@@ -62,23 +62,26 @@ export type Database = {
       messages: {
         Row: {
           chat_id: string
-          content: string
+          content: string | null
           created_at: string
           id: string
+          image_url: string | null
           sender_id: string
         }
         Insert: {
           chat_id: string
-          content: string
+          content?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           sender_id: string
         }
         Update: {
           chat_id?: string
-          content?: string
+          content?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -94,6 +97,7 @@ export type Database = {
       profiles: {
         Row: {
           age: number
+          avatar_url: string | null
           created_at: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
@@ -102,6 +106,7 @@ export type Database = {
         }
         Insert: {
           age: number
+          avatar_url?: string | null
           created_at?: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
@@ -110,6 +115,7 @@ export type Database = {
         }
         Update: {
           age?: number
+          avatar_url?: string | null
           created_at?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
@@ -193,6 +199,7 @@ export type Database = {
       get_chat_partner: {
         Args: { _chat_id: string }
         Returns: {
+          avatar_url: string
           id: string
           name: string
         }[]

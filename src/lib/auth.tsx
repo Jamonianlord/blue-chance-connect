@@ -7,6 +7,7 @@ export type Profile = {
   name: string;
   age: number;
   gender: "male" | "female" | "other";
+  avatar_url: string | null;
 };
 
 type Ctx = {

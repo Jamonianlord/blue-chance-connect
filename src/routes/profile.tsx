@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Header } from "@/components/Header";
@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Avatar } from "@/components/SignedImage";
 import { toast } from "sonner";
-import { Loader2, Save, LogOut } from "lucide-react";
+import { Loader2, Save, LogOut, Camera } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -30,6 +31,9 @@ function ProfilePage() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -40,8 +44,35 @@ function ProfilePage() {
       setName(profile.name);
       setAge(String(profile.age));
       setGender(profile.gender === "other" ? "male" : profile.gender);
+      setAvatarPath(profile.avatar_url ?? null);
     }
   }, [profile]);
+
+  const onPickAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image."); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB."); return; }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile-photos")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+      if (dbErr) throw dbErr;
+      setAvatarPath(path);
+      await refreshProfile();
+      toast.success("Photo updated");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      console.error("[profile] avatar upload", e);
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!user) return;
@@ -80,6 +111,31 @@ function ProfilePage() {
         <p className="mt-1 text-sm text-muted-foreground">This is how others may see you.</p>
 
         <div className="mt-6 space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm">
+          <div className="flex justify-center">
+            <div className="relative">
+              <Avatar path={avatarPath} name={name || profile?.name} size={112} className="ring-4 ring-[var(--brand-soft)]" />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md hover:opacity-90 disabled:opacity-60"
+                aria-label="Change photo"
+              >
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onPickAvatar(f);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          </div>
           <div>
             <Label htmlFor="name">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
