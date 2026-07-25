@@ -34,6 +34,7 @@ function MatchPage() {
   const cancelledRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -56,6 +57,11 @@ const stopSearch = async () => {
     setSearching(false);
     if (pollRef.current) clearInterval(pollRef.current);
     if (user) await supabase.from("waiting_pool").delete().eq("user_id", user.id);
+    // Clean up match channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
     // Clean up presence
     if (presenceRef.current) {
       presenceRef.current?.untrack(); // Remove our presence tracking
@@ -70,7 +76,7 @@ const stopSearch = async () => {
     setSearching(true);
     cancelledRef.current = false;
 
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    
     let reconnectAttempts = 0;
     const MAX_RECONNECT_ATTEMPTS = 10;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -79,14 +85,14 @@ const stopSearch = async () => {
     const navigateToChat = (chatId: string) => {
       if (cancelledRef.current) return;
       cancelledRef.current = true;
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
       navigate({ to: "/chat/$chatId", params: { chatId } });
     };
 
     const subscribeMatchChannel = () => {
       if (cancelledRef.current || !user) return;
-      channel = supabase
+      channelRef.current = supabase
         .channel(`match:${user.id}`)
         .on(
           "postgres_changes",
@@ -112,7 +118,7 @@ const stopSearch = async () => {
               reconnectAttempts++;
               const delay = Math.min(1000 * reconnectAttempts, 10000);
               reconnectTimer = setTimeout(() => {
-                if (channel) supabase.removeChannel(channel);
+if (channelRef.current) supabase.removeChannel(channelRef.current);
                 subscribeMatchChannel();
               }, delay);
             }
@@ -150,15 +156,22 @@ const stopSearch = async () => {
         return;
       }
 
-      const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: lookingFor });
-      if (error) {
-        toast.error(error.message);
+      try {
+        const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: lookingFor });
+        if (error) {
+          toast.error(error.message);
+          await stopSearch();
+          return;
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row?.chat_id) {
+          navigateToChat(row.chat_id);
+        }
+      } catch (err) {
+        console.error("[match] RPC find_or_wait_match failed", err);
+        toast.error("Failed to find match. Please try again.");
         await stopSearch();
         return;
-      }
-      const row = Array.isArray(data) ? data[0] : data;
-      if (row?.chat_id) {
-        navigateToChat(row.chat_id);
       }
     };
 
@@ -166,9 +179,9 @@ const stopSearch = async () => {
     pollRef.current = setInterval(tryMatch, 4000);
 
     // Cleanup on unmount via effect below
-    return () => {
+return () => {
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
     };
   };
@@ -258,6 +271,11 @@ useEffect(() => {
       cancelledRef.current = true;
       if (pollRef.current) clearInterval(pollRef.current);
       if (user) supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      // Clean up match channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
       // Clean up presence
       if (presenceRef.current) {
         presenceRef.current?.untrack(); // Remove our presence tracking
