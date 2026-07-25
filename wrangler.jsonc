@@ -1,0 +1,8 @@
+{
+  "vars": {
+    "SUPABASE_URL": "https://vbngljpbacovdrnhddpm.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_tMLaqXoL18WU4sRQL_gixw_9JiMbSny",
+    "VITE_SUPABASE_URL": "https://vbngljpbacovdrnhddpm.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_tMLaqXoL18WU4sRQL_gixw_9JiMbSny"
+  }
+}
