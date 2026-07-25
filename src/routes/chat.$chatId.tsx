@@ -11,8 +11,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Ban, Flag, Send, SkipForward, Loader2 } from "lucide-react";
+import { ArrowLeft, Ban, Flag, Send, SkipForward, Loader2, Paperclip, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { SignedImage, Avatar } from "@/components/SignedImage";
 
 export const Route = createFileRoute("/chat/$chatId")({
   component: ChatPage,
