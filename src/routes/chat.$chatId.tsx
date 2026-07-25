@@ -37,12 +37,16 @@ function ChatPage() {
   const navigate = useNavigate();
   const [chat, setChat] = useState<ChatRow | null>(null);
   const [partnerName, setPartnerName] = useState<string>("Stranger");
+  const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
