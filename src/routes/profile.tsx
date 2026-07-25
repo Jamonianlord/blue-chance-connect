@@ -111,6 +111,31 @@ function ProfilePage() {
         <p className="mt-1 text-sm text-muted-foreground">This is how others may see you.</p>
 
         <div className="mt-6 space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm">
+          <div className="flex justify-center">
+            <div className="relative">
+              <Avatar path={avatarPath} name={name || profile?.name} size={112} className="ring-4 ring-[var(--brand-soft)]" />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md hover:opacity-90 disabled:opacity-60"
+                aria-label="Change photo"
+              >
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onPickAvatar(f);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          </div>
           <div>
             <Label htmlFor="name">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
