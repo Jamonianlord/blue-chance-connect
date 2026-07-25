@@ -82,7 +82,7 @@ function ChatPage() {
 
     const subscribeChatChannel = () => {
       if (cancelled || !user) return;
-      channel = supabase
+      const newChannel = supabase
         .channel(`chat:${chatId}`, { config: { broadcast: { self: false } } })
         .on("postgres_changes",
           { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
@@ -115,9 +115,9 @@ function ChatPage() {
             if (reconnectTimer) clearTimeout(reconnectTimer);
             if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !cancelled) {
               reconnectAttempts++;
-              const delay = Math.min(1000 * reconnectAttempts, 10000);
+              const delay = Math.min(200 * Math.pow(2, reconnectAttempts - 1), 8000);
               reconnectTimer = setTimeout(() => {
-                if (channel) supabase.removeChannel(channel);
+                if (channelRef.current) supabase.removeChannel(channelRef.current);
                 subscribeChatChannel();
               }, delay);
             }
@@ -125,10 +125,11 @@ function ChatPage() {
             reconnectAttempts = 0;
           }
         });
+      channel = newChannel;
+      channelRef.current = newChannel;
     };
 
     subscribeChatChannel();
-    channelRef.current = channel;
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible" && !cancelled) {
@@ -141,7 +142,7 @@ function ChatPage() {
     return () => {
       cancelled = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
       window.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [chatId, user, navigate]);

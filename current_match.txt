@@ -13,9 +13,9 @@ export const Route = createFileRoute("/match")({
   component: MatchPage,
   head: () => ({
     meta: [
-      { title: "Finding your match \u2014 1Chance" },
+      { title: "Finding your match â€” 1Chance" },
       { name: "description", content: "Looking for someone new to chat with on 1Chance." },
-      { property: "og:title", content: "Finding your match \u2014 1Chance" },
+      { property: "og:title", content: "Finding your match â€” 1Chance" },
       { property: "og:description", content: "Matching you with someone online right now." },
       { name: "robots", content: "noindex" },
     ],
@@ -34,6 +34,7 @@ function MatchPage() {
   const cancelledRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -51,16 +52,22 @@ function MatchPage() {
     else if (profile?.gender === "female") setLookingFor("male");
   }, [profile]);
 
-  const stopSearch = async () => {
+const stopSearch = async () => {
     cancelledRef.current = true;
     setSearching(false);
     if (pollRef.current) clearInterval(pollRef.current);
     if (user) await supabase.from("waiting_pool").delete().eq("user_id", user.id);
+    // Clean up match channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    // Clean up presence
     if (presenceRef.current) {
-      presenceRef.current?.untrack();
+      presenceRef.current?.untrack(); // Remove our presence tracking
       supabase.removeChannel(presenceRef.current);
       presenceRef.current = null;
-      setSearchingCount(0);
+      setSearchingCount(0); // Reset count when we stop searching
     }
   };
 
@@ -69,16 +76,64 @@ function MatchPage() {
     setSearching(true);
     cancelledRef.current = false;
 
+    
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollingActive = false;
+
     const navigateToChat = (chatId: string) => {
       if (cancelledRef.current) return;
       cancelledRef.current = true;
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
       navigate({ to: "/chat/$chatId", params: { chatId } });
     };
 
+    const subscribeMatchChannel = () => {
+      if (cancelledRef.current || !user) return;
+      channelRef.current = supabase
+        .channel(`match:${user.id}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "chats", filter: `user2_id=eq.${user.id}` },
+          (payload) => {
+            const chat = payload.new as { id: string };
+            navigateToChat(chat.id);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "chats", filter: `user1_id=eq.${user.id}` },
+          (payload) => {
+            const chat = payload.new as { id: string };
+            navigateToChat(chat.id);
+          },
+        )
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+            console.warn("[match] channel closed/error, attempting reconnection...", status);
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !cancelledRef.current) {
+              reconnectAttempts++;
+              const delay = Math.min(200 * Math.pow(2, reconnectAttempts - 1), 8000);
+              reconnectTimer = setTimeout(() => {
+if (channelRef.current) supabase.removeChannel(channelRef.current);
+                subscribeMatchChannel();
+              }, delay);
+            }
+          } else if (status === "SUBSCRIBED") {
+            reconnectAttempts = 0;
+          }
+        });
+    };
+
+    subscribeMatchChannel();
+
     const tryMatch = async () => {
       if (cancelledRef.current) return;
 
+      // Fallback: if we already have an active chat, redirect there
       try {
         const { data: existingChats, error: qErr } = await supabase
           .from("chats")
@@ -121,28 +176,33 @@ function MatchPage() {
     };
 
     await tryMatch();
-    pollRef.current = setInterval(tryMatch, 800);
+    pollRef.current = setInterval(tryMatch, 4000);
 
-    return () => {
+    // Cleanup on unmount via effect below
+return () => {
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
     };
   };
 
-  useEffect(() => {
+useEffect(() => {
     const handleBeforeUnload = () => {
       if (user) {
         supabase.from("waiting_pool").delete().eq("user_id", user.id);
       }
+      // Clean up presence on unload
       if (presenceRef.current) {
-        presenceRef.current?.untrack();
+        presenceRef.current?.untrack(); // Remove our presence tracking
         supabase.removeChannel(presenceRef.current);
         presenceRef.current = null;
       }
     };
-
+    
     const handleVisibility = async () => {
       if (document.visibilityState === "visible" && searching && user) {
         console.log("[match] tab visible, re-checking match state...");
+        // Force an immediate poll check when returning to the tab
         const { data: existingChats } = await supabase
           .from("chats")
           .select("id")
@@ -155,56 +215,74 @@ function MatchPage() {
         }
       }
     };
-
+    
+    // Set up presence tracking when searching starts
     if (searching && user) {
-      const presenceChannel = supabase.channel("presence:online-users", {
+      // Presence channel for tracking who's currently searching
+      const presenceChannel = supabase.channel('presence:online-users', {
         config: {
           broadcast: { self: false },
-          presence: {},
-        },
+          presence: { 
+            // Will store { searching: boolean, lookingFor: string }
+          }
+        }
       });
-
+      
+      // Track presence state changes
       presenceChannel
-        .on("presence", { event: "join" }, () => {
+        .on('presence', { event: 'join' }, () => {
+          // Update count when someone joins
           const state = presenceChannel?.presenceState();
-          const count = state ? Object.keys(state).length : 0;
-          setSearchingCount(count);
+            const count = state ? Object.keys(state).length : 0;
+            setSearchingCount(count);
         })
-        .on("presence", { event: "leave" }, () => {
+        .on('presence', { event: 'leave' }, () => {
+          // Update count when someone leaves
           const state = presenceChannel?.presenceState();
-          const count = state ? Object.keys(state).length : 0;
-          setSearchingCount(count);
+            const count = state ? Object.keys(state).length : 0;
+            setSearchingCount(count);
         })
         .subscribe((status) => {
-          if (status === "SUBSCRIBED") {
+          if (status === 'SUBSCRIBED') {
+            // Set our initial presence state when subscribed
             presenceChannel?.track({
               searching: true,
-              lookingFor: lookingFor,
+              lookingFor: lookingFor
             });
           }
         });
-
+      
+      // Store reference to cleanup later
       presenceRef.current = presenceChannel;
     } else if (!searching && presenceRef.current) {
-      presenceRef.current?.untrack();
+      // Clean up presence when searching stops
+      presenceRef.current?.untrack(); // Remove our presence tracking
       if (presenceRef.current) {
         supabase.removeChannel(presenceRef.current);
         presenceRef.current = null;
       }
-      setSearchingCount(0);
+      setSearchingCount(0); // Reset count when we stop searching
     }
-
+    
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("visibilitychange", handleVisibility);
-
+    
     return () => {
       cancelledRef.current = true;
       if (pollRef.current) clearInterval(pollRef.current);
       if (user) supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      // Clean up match channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      // Clean up presence
       if (presenceRef.current) {
-        presenceRef.current?.untrack();
-        supabase.removeChannel(presenceRef.current);
-        presenceRef.current = null;
+        presenceRef.current?.untrack(); // Remove our presence tracking
+        if (presenceRef.current) {
+          supabase.removeChannel(presenceRef.current);
+          presenceRef.current = null;
+        }
       }
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("visibilitychange", handleVisibility);
@@ -262,34 +340,35 @@ function MatchPage() {
             </Button>
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center text-center">
-            <div className="relative flex h-40 w-40 items-center justify-center">
-              <div className="absolute inset-0 animate-ping rounded-full bg-[var(--brand)]/20" />
-              <div className="absolute inset-4 animate-pulse rounded-full bg-[var(--brand)]/30" />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
-                <Loader2 className="h-10 w-10 animate-spin text-white" />
-              </div>
-            </div>
-            <h2 className="mt-8 text-2xl font-bold">Finding your match\u2026</h2>
-            <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-              {searchingCount > 0 ? (
-                <>
-                  <span className="font-medium">{searchingCount}</span> {searchingCount === 1 ? "person" : "people"} online now
-                </>
-              ) : (
-                "Hang tight \u2014 we're looking for someone online right now who wants to chat."
-              )}
-            </p>
-            <Button
-              onClick={stopSearch}
-              variant="outline"
-              className="mt-8 rounded-full"
-            >
-              <X className="mr-1 h-4 w-4" /> Cancel
-            </Button>
-          </div>
+<div className="flex w-full flex-col items-center text-center">
+             <div className="relative flex h-40 w-40 items-center justify-center">
+               <div className="absolute inset-0 animate-ping rounded-full bg-[var(--brand)]/20" />
+               <div className="absolute inset-4 animate-pulse rounded-full bg-[var(--brand)]/30" />
+               <div className="relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
+                 <Loader2 className="h-10 w-10 animate-spin text-white" />
+               </div>
+             </div>
+             <h2 className="mt-8 text-2xl font-bold">Finding your matchâ€¦</h2>
+             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+               {searchingCount > 0 ? (
+            <>
+              <span className="font-medium">{searchingCount}</span> {searchingCount === 1 ? "person" : "people"} online now
+            </>
+          ) : (
+            "Hang tight â€” we're looking for someone online right now who wants to chat."
+          )}
+             </p>
+             <Button
+               onClick={stopSearch}
+               variant="outline"
+               className="mt-8 rounded-full"
+             >
+               <X className="mr-1 h-4 w-4" /> Cancel
+             </Button>
+           </div>
         )}
       </main>
     </div>
   );
 }
+
