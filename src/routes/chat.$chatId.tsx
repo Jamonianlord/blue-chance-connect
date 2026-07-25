@@ -28,7 +28,7 @@ export const Route = createFileRoute("/chat/$chatId")({
   }),
 });
 
-type Message = { id: string; chat_id: string; sender_id: string; content: string; created_at: string };
+type Message = { id: string; chat_id: string; sender_id: string; content: string | null; image_url: string | null; created_at: string };
 type ChatRow = { id: string; user1_id: string; user2_id: string; ended_at: string | null; ended_by: string | null };
 
 function ChatPage() {
