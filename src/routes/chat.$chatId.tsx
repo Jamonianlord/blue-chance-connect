@@ -65,7 +65,10 @@ function ChatPage() {
       setChat(c as ChatRow);
       const { data: p } = await supabase.rpc("get_chat_partner", { _chat_id: chatId });
       const partner = Array.isArray(p) ? p[0] : p;
-      if (!cancelled && partner?.name) setPartnerName(partner.name);
+      if (!cancelled && partner) {
+        if (partner.name) setPartnerName(partner.name);
+        setPartnerAvatar(partner.avatar_url ?? null);
+      }
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true });
       if (!cancelled) setMessages((msgs ?? []) as Message[]);
     })();
