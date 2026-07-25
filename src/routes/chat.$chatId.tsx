@@ -300,15 +300,36 @@ function ChatPage() {
           )}
           {messages.map((m) => {
             const mine = m.sender_id === user!.id;
+            const isImage = !!m.image_url;
             return (
               <div key={m.id} className={"flex " + (mine ? "justify-end" : "justify-start")}>
-                <div className={"max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-sm " +
+                <div className={"max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm " +
+                  (isImage ? "p-1 " : "px-4 py-2 ") +
                   (mine
                     ? "bg-[var(--brand)] text-white rounded-br-sm"
                     : "bg-white text-foreground border border-border rounded-bl-sm"
                   )}>
-                  <div className="whitespace-pre-wrap break-words">{m.content}</div>
-                  <div className={"mt-1 text-[10px] " + (mine ? "text-white/70" : "text-muted-foreground")}>
+                  {isImage ? (
+                    m.image_url ? (
+                      <SignedImage
+                        bucket="chat-images"
+                        path={m.image_url}
+                        alt="Shared image"
+                        className="block max-h-72 max-w-full cursor-pointer rounded-xl object-cover"
+                        onClick={async () => {
+                          const { data } = await supabase.storage.from("chat-images").createSignedUrl(m.image_url!, 3600);
+                          if (data?.signedUrl) setLightbox(data.signedUrl);
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-40 w-40 items-center justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-white/80" />
+                      </div>
+                    )
+                  ) : (
+                    <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                  )}
+                  <div className={"px-2 pb-1 text-[10px] " + (isImage ? "pt-1 " : "mt-1 ") + (mine ? "text-white/70" : "text-muted-foreground")}>
                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
                 </div>
