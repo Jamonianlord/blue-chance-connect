@@ -359,6 +359,28 @@ function ChatPage() {
             </Button>
           ) : (
             <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) sendImage(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                size="icon"
+                variant="ghost"
+                className="h-11 w-11 shrink-0 rounded-full text-[var(--brand)] hover:bg-[var(--brand-soft)]"
+                aria-label="Attach image"
+              >
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+              </Button>
               <Input
                 value={input}
                 onChange={(e) => onType(e.target.value)}
@@ -379,6 +401,22 @@ function ChatPage() {
           )}
         </div>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img src={lightbox} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
+        </div>
+      )}
     </div>
   );
 }
