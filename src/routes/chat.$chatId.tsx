@@ -128,6 +128,7 @@ function ChatPage() {
       chat_id: chatId,
       sender_id: user.id,
       content: text,
+      image_url: null,
       created_at: new Date().toISOString(),
     };
     setMessages((cur) => [...cur, optimisticMsg]);
@@ -147,6 +148,44 @@ function ChatPage() {
     }
 
     setSending(false);
+  };
+
+  const sendImage = async (file: File) => {
+    if (!user || uploading || ended) return;
+    if (!file.type.startsWith("image/") || !/^image\/(jpeg|png|gif|webp)$/.test(file.type)) {
+      toast.error("Only JPG, PNG, GIF, or WEBP images.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB.");
+      return;
+    }
+    setUploading(true);
+    const tempId = crypto.randomUUID();
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${chatId}/${user.id}-${Date.now()}.${ext}`;
+      setMessages((cur) => [...cur, {
+        id: tempId, chat_id: chatId, sender_id: user.id,
+        content: null, image_url: null, created_at: new Date().toISOString(),
+      }]);
+      const { error: upErr } = await supabase.storage
+        .from("chat-images").upload(path, file, { contentType: file.type });
+      if (upErr) throw upErr;
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({ chat_id: chatId, sender_id: user.id, image_url: path })
+        .select().single();
+      if (error) throw error;
+      setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      console.error("[chat] image upload", e);
+      toast.error(msg);
+      setMessages((cur) => cur.filter((m) => m.id !== tempId));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const onType = (v: string) => {
