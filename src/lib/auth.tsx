@@ -28,8 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile(data as Profile | null);
+    try {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+      if (error) {
+        console.error("[auth] loadProfile error", error);
+        setProfile(null);
+        return;
+      }
+      setProfile(data as Profile | null);
+    } catch (err) {
+      console.error("[auth] loadProfile unexpected error", err);
+      setProfile(null);
+    }
   };
 
   useEffect(() => {
@@ -47,6 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(s?.user ?? null);
       if (s?.user) loadProfile(s.user.id).finally(() => setLoading(false));
       else setLoading(false);
+    }).catch((err) => {
+      console.error("[auth] getSession error", err);
+      setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -56,7 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     loading,
-    refreshProfile: async () => { if (user) await loadProfile(user.id); },
+    refreshProfile: async () => {
+      if (user) {
+        try {
+          await loadProfile(user.id);
+        } catch (err) {
+          console.error("[auth] refreshProfile error", err);
+        }
+      }
+    },
     signOut: async () => { await supabase.auth.signOut(); },
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
