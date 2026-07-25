@@ -58,7 +58,7 @@ function ChatPage() {
     if (!user) return;
     let cancelled = false;
 
-    (async () => {
+    const fetchChatAndMessages = async () => {
       const { data: c } = await supabase.from("chats").select("*").eq("id", chatId).maybeSingle();
       if (cancelled) return;
       if (!c) { toast.error("Chat not found"); navigate({ to: "/match" }); return; }
@@ -71,41 +71,78 @@ function ChatPage() {
       }
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true });
       if (!cancelled) setMessages((msgs ?? []) as Message[]);
-    })();
+    };
 
-    const channel = supabase
-      .channel(`chat:${chatId}`, { config: { broadcast: { self: false } } })
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
-        (payload) => {
-          const msg = payload.new as Message;
-          setMessages((cur) => {
-            if (cur.some((m) => m.id === msg.id)) return cur;
-            return [...cur, msg];
-          });
-        })
-      .on("postgres_changes",
-        { event: "UPDATE", schema: "public", table: "chats", filter: `id=eq.${chatId}` },
-        (payload) => {
-          const updated = payload.new as ChatRow;
-          setChat(updated);
-          if (updated.ended_at && updated.ended_by !== user.id) {
-            toast.info("Your partner ended the chat.");
+    fetchChatAndMessages();
+
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const subscribeChatChannel = () => {
+      if (cancelled || !user) return;
+      channel = supabase
+        .channel(`chat:${chatId}`, { config: { broadcast: { self: false } } })
+        .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+          (payload) => {
+            const msg = payload.new as Message;
+            setMessages((cur) => {
+              if (cur.some((m) => m.id === msg.id)) return cur;
+              return [...cur, msg];
+            });
+          })
+        .on("postgres_changes",
+          { event: "UPDATE", schema: "public", table: "chats", filter: `id=eq.${chatId}` },
+          (payload) => {
+            const updated = payload.new as ChatRow;
+            setChat(updated);
+            if (updated.ended_at && updated.ended_by !== user.id) {
+              toast.info("Your partner ended the chat.");
+            }
+          })
+        .on("broadcast", { event: "typing" }, (payload) => {
+          if (payload.payload?.from !== user.id) {
+            setPartnerTyping(true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => setPartnerTyping(false), 2000);
           }
         })
-      .on("broadcast", { event: "typing" }, (payload) => {
-        if (payload.payload?.from !== user.id) {
-          setPartnerTyping(true);
-          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => setPartnerTyping(false), 2000);
-        }
-      })
-      .subscribe();
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+            console.warn("[chat] channel closed/error, attempting reconnection...", status);
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !cancelled) {
+              reconnectAttempts++;
+              const delay = Math.min(1000 * reconnectAttempts, 10000);
+              reconnectTimer = setTimeout(() => {
+                if (channel) supabase.removeChannel(channel);
+                subscribeChatChannel();
+              }, delay);
+            }
+          } else if (status === "SUBSCRIBED") {
+            reconnectAttempts = 0;
+          }
+        });
+    };
+
+    subscribeChatChannel();
     channelRef.current = channel;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && !cancelled) {
+        console.log("[chat] tab visible, re-syncing messages...");
+        fetchChatAndMessages();
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (channel) supabase.removeChannel(channel);
+      window.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [chatId, user, navigate]);
 

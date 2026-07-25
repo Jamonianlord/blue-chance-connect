@@ -61,56 +61,95 @@ function MatchPage() {
     setSearching(true);
     cancelledRef.current = false;
 
-    // Subscribe to chats where I'm added as user2 (someone matched with me)
-    const channel = supabase
-      .channel(`match:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chats", filter: `user2_id=eq.${user.id}` },
-        (payload) => {
-          const chat = payload.new as { id: string };
-          supabase.removeChannel(channel);
-          if (pollRef.current) clearInterval(pollRef.current);
-          navigate({ to: "/chat/$chatId", params: { chatId: chat.id } });
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chats", filter: `user1_id=eq.${user.id}` },
-        (payload) => {
-          const chat = payload.new as { id: string };
-          supabase.removeChannel(channel);
-          if (pollRef.current) clearInterval(pollRef.current);
-          navigate({ to: "/chat/$chatId", params: { chatId: chat.id } });
-        },
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollingActive = false;
+
+    const navigateToChat = (chatId: string) => {
+      if (cancelledRef.current) return;
+      cancelledRef.current = true;
+      if (channel) supabase.removeChannel(channel);
+      if (pollRef.current) clearInterval(pollRef.current);
+      navigate({ to: "/chat/$chatId", params: { chatId } });
+    };
+
+    const subscribeMatchChannel = () => {
+      if (cancelledRef.current || !user) return;
+      channel = supabase
+        .channel(`match:${user.id}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "chats", filter: `user2_id=eq.${user.id}` },
+          (payload) => {
+            const chat = payload.new as { id: string };
+            navigateToChat(chat.id);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "chats", filter: `user1_id=eq.${user.id}` },
+          (payload) => {
+            const chat = payload.new as { id: string };
+            navigateToChat(chat.id);
+          },
+        )
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+            console.warn("[match] channel closed/error, attempting reconnection...", status);
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !cancelledRef.current) {
+              reconnectAttempts++;
+              const delay = Math.min(1000 * reconnectAttempts, 10000);
+              reconnectTimer = setTimeout(() => {
+                if (channel) supabase.removeChannel(channel);
+                subscribeMatchChannel();
+              }, delay);
+            }
+          } else if (status === "SUBSCRIBED") {
+            reconnectAttempts = 0;
+          }
+        });
+    };
+
+    subscribeMatchChannel();
 
     const tryMatch = async () => {
       if (cancelledRef.current) return;
 
       // Fallback: if we already have an active chat, redirect there
-      const { data: existingChats } = await supabase
-        .from("chats")
-        .select("id")
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .is("ended_at", null)
-        .limit(1);
+      try {
+        const { data: existingChats, error: qErr } = await supabase
+          .from("chats")
+          .select("id")
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .is("ended_at", null)
+          .limit(1);
 
-      if (existingChats && existingChats.length > 0) {
-        supabase.removeChannel(channel);
-        if (pollRef.current) clearInterval(pollRef.current);
-        navigate({ to: "/chat/$chatId", params: { chatId: existingChats[0].id } });
+        if (qErr) {
+          console.error("[match] fallback query error", qErr);
+          return;
+        }
+
+        if (existingChats && existingChats.length > 0) {
+          navigateToChat(existingChats[0].id);
+          return;
+        }
+      } catch (err) {
+        console.error("[match] fallback query unexpected error", err);
         return;
       }
 
       const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: lookingFor });
-      if (error) { toast.error(error.message); await stopSearch(); return; }
+      if (error) {
+        toast.error(error.message);
+        await stopSearch();
+        return;
+      }
       const row = Array.isArray(data) ? data[0] : data;
       if (row?.chat_id) {
-        supabase.removeChannel(channel);
-        if (pollRef.current) clearInterval(pollRef.current);
-        navigate({ to: "/chat/$chatId", params: { chatId: row.chat_id } });
+        navigateToChat(row.chat_id);
       }
     };
 
@@ -118,14 +157,45 @@ function MatchPage() {
     pollRef.current = setInterval(tryMatch, 4000);
 
     // Cleanup on unmount via effect below
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (channel) supabase.removeChannel(channel);
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   };
 
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (user) {
+        supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && searching && user) {
+        console.log("[match] tab visible, re-checking match state...");
+        // Force an immediate poll check when returning to the tab
+        const { data: existingChats } = supabase
+          .from("chats")
+          .select("id")
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .is("ended_at", null)
+          .limit(1);
+        if (existingChats && existingChats.length > 0) {
+          if (pollRef.current) clearInterval(pollRef.current);
+          navigate({ to: "/chat/$chatId", params: { chatId: existingChats[0].id } });
+        }
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       cancelledRef.current = true;
       if (pollRef.current) clearInterval(pollRef.current);
       if (user) supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("visibilitychange", handleVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
