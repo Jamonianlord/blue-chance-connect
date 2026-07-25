@@ -70,7 +70,11 @@ function ChatPage() {
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
         (payload) => {
-          setMessages((cur) => [...cur, payload.new as Message]);
+          const msg = payload.new as Message;
+          setMessages((cur) => {
+            if (cur.some((m) => m.id === msg.id)) return cur;
+            return [...cur, msg];
+          });
         })
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "chats", filter: `id=eq.${chatId}` },
@@ -109,8 +113,31 @@ function ChatPage() {
     if (!text || !user || sending || ended) return;
     setSending(true);
     setInput("");
-    const { error } = await supabase.from("messages").insert({ chat_id: chatId, sender_id: user.id, content: text });
-    if (error) { toast.error(error.message); setInput(text); }
+
+    const tempId = crypto.randomUUID();
+    const optimisticMsg: Message = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((cur) => [...cur, optimisticMsg]);
+
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({ chat_id: chatId, sender_id: user.id, content: text })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error(error.message);
+      setInput(text);
+      setMessages((cur) => cur.filter((m) => m.id !== tempId));
+    } else if (data) {
+      setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
+    }
+
     setSending(false);
   };
 

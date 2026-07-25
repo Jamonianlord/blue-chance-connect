@@ -74,10 +74,36 @@ function MatchPage() {
           navigate({ to: "/chat/$chatId", params: { chatId: chat.id } });
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chats", filter: `user1_id=eq.${user.id}` },
+        (payload) => {
+          const chat = payload.new as { id: string };
+          supabase.removeChannel(channel);
+          if (pollRef.current) clearInterval(pollRef.current);
+          navigate({ to: "/chat/$chatId", params: { chatId: chat.id } });
+        },
+      )
       .subscribe();
 
     const tryMatch = async () => {
       if (cancelledRef.current) return;
+
+      // Fallback: if we already have an active chat, redirect there
+      const { data: existingChats } = await supabase
+        .from("chats")
+        .select("id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .is("ended_at", null)
+        .limit(1);
+
+      if (existingChats && existingChats.length > 0) {
+        supabase.removeChannel(channel);
+        if (pollRef.current) clearInterval(pollRef.current);
+        navigate({ to: "/chat/$chatId", params: { chatId: existingChats[0].id } });
+        return;
+      }
+
       const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: lookingFor });
       if (error) { toast.error(error.message); await stopSearch(); return; }
       const row = Array.isArray(data) ? data[0] : data;
