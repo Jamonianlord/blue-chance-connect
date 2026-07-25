@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Header } from "@/components/Header";
@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Avatar } from "@/components/SignedImage";
 import { toast } from "sonner";
-import { Loader2, Save, LogOut } from "lucide-react";
+import { Loader2, Save, LogOut, Camera } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
