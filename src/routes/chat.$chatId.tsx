@@ -234,6 +234,7 @@ function ChatPage() {
       <header className="flex items-center justify-between border-b border-border bg-white/90 px-3 py-2 backdrop-blur">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={goBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <Avatar path={partnerAvatar} name={partnerName} size={36} />
           <div>
             <div className="text-sm font-semibold leading-tight">{partnerName}</div>
             <div className="text-xs text-muted-foreground">{ended ? "Chat ended" : "Chatting now"}</div>
