@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Bell, BellRing } from "lucide-react";
+import { usePushSubscription } from "@/lib/usePushSubscription";
 
 export const Route = createFileRoute("/match")({
   component: MatchPage,
@@ -27,6 +28,7 @@ type LookingFor = "male" | "female" | "other";
 
 function MatchPage() {
   const { user, profile, loading: authLoading } = useAuth();
+  const { subscribe, subscribing, subscribed } = usePushSubscription(user?.id);
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [lookingFor, setLookingFor] = useState<LookingFor>("female");
@@ -262,6 +264,26 @@ function MatchPage() {
             >
               Find my match
             </Button>
+            {!subscribed && (
+              <Button
+                onClick={subscribe}
+                disabled={subscribing}
+                variant="ghost"
+                className="mt-3 h-10 w-full rounded-full text-sm text-muted-foreground"
+              >
+                {subscribing ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Bell className="mr-1.5 h-4 w-4" />
+                )}
+                Notify me when someone's online
+              </Button>
+            )}
+            {subscribed && (
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <BellRing className="h-3.5 w-3.5" /> Notifications enabled
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex w-full flex-col items-center text-center">
