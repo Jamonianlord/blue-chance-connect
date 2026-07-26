@@ -100,12 +100,42 @@
   0%, 100% { transform: translate3d(0,0,0); }
   50% { transform: translate3d(0,-18px,0); }
 }
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(18px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes line-reveal {
+  0% { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0,0,0); opacity: .5; }
+  50% { transform: translate3d(0,-14px,0); opacity: .8; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: .35; transform: scale(1); }
+  50% { opacity: .65; transform: scale(1.15); }
+}
 
 @utility animate-breathe { animation: breathe 3.2s ease-in-out infinite; will-change: transform, opacity; }
 @utility animate-ring-out { animation: ring-out 2.8s cubic-bezier(.4,0,.2,1) infinite; will-change: transform, opacity; }
 @utility animate-dot { animation: dot-bounce 1.4s ease-in-out infinite; }
 @utility animate-drift { animation: drift 12s ease-in-out infinite; will-change: transform; }
+@utility animate-fade-in-up { animation: fade-in-up 0.7s ease-out both; }
+@utility animate-line-reveal { animation: line-reveal 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+@utility animate-float-slow { animation: float-slow 8s ease-in-out infinite; will-change: transform, opacity; }
+@utility animate-pulse-soft { animation: pulse-soft 4s ease-in-out infinite; will-change: transform, opacity; }
+
+/* Scroll reveal */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.reveal.is-revealed { opacity: 1; transform: translateY(0); }
+
+/* Card hover glow */
+.card-hover-glow { transition: transform 0.3s ease-out, box-shadow 0.3s ease-out; }
+.card-hover-glow:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px color-mix(in oklab, var(--brand) 22%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-breathe, .animate-ring-out, .animate-dot, .animate-drift { animation: none !important; }
+  .animate-breathe, .animate-ring-out, .animate-dot, .animate-drift, .animate-fade-in-up, .animate-line-reveal, .animate-float-slow, .animate-pulse-soft { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .card-hover-glow:hover { transform: none; }
 }
