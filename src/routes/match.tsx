@@ -1,4 +1,4 @@
-﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -280,14 +280,14 @@ function MatchPage() {
                 </div>
               </div>
             </div>
-            <h2 className="mt-8 text-2xl font-bold">Finding your match…</h2>
+            <h2 className="mt-8 text-2xl font-bold">Finding your match\u2026</h2>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
               {searchingCount > 0 ? (
                 <>
                   <span className="font-medium">{searchingCount}</span> {searchingCount === 1 ? "person" : "people"} online now
                 </>
               ) : (
-                "Hang tight — we're looking for someone online right now who wants to chat."
+                "Hang tight \u2014 we're looking for someone online right now who wants to chat."
               )}
             </p>
             <Button

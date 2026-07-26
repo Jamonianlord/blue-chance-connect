@@ -19,9 +19,9 @@ export const Route = createFileRoute("/chat/$chatId")({
   component: ChatPage,
   head: () => ({
     meta: [
-      { title: "Chat — 1Chance" },
+      { title: "Chat \u2014 1Chance" },
       { name: "description", content: "Your live 1Chance conversation." },
-      { property: "og:title", content: "Chat — 1Chance" },
+      { property: "og:title", content: "Chat \u2014 1Chance" },
       { property: "og:description", content: "Live 1-on-1 chat on 1Chance." },
       { name: "robots", content: "noindex" },
     ],
@@ -268,7 +268,6 @@ function ChatPage() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-[var(--brand-soft)]/30">
-      {/* Header */}
       <header className="flex items-center justify-between border-b border-border bg-white/90 px-3 py-2 backdrop-blur">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={goBack}><ArrowLeft className="h-4 w-4" /></Button>
@@ -328,12 +327,11 @@ function ChatPage() {
         </div>
       </header>
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-6">
         <div className="mx-auto max-w-2xl space-y-2">
           {messages.length === 0 && (
             <div className="mx-auto mt-16 max-w-xs text-center text-sm text-muted-foreground">
-              Say hi 👋 — you have one chance to make it a great chat.
+              Say hi \ud83d\udc4b \u2014 you have one chance to make it a great chat.
             </div>
           )}
           {messages.map((m) => {
@@ -388,7 +386,6 @@ function ChatPage() {
         </div>
       </div>
 
-      {/* Composer */}
       <div className="border-t border-border bg-white/90 p-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-2">
           {ended ? (
@@ -423,7 +420,7 @@ function ChatPage() {
                 value={input}
                 onChange={(e) => onType(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                placeholder="Type a message…"
+                placeholder="Type a message\u2026"
                 className="h-11 flex-1 rounded-full border-border bg-muted/50"
                 maxLength={2000}
               />

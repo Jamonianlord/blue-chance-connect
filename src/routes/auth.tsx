@@ -15,9 +15,9 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({
     meta: [
-      { title: "Sign in — 1Chance" },
+      { title: "Sign in \u2014 1Chance" },
       { name: "description", content: "Create your 1Chance account and start meeting new people." },
-      { property: "og:title", content: "Sign in — 1Chance" },
+      { property: "og:title", content: "Sign in \u2014 1Chance" },
       { property: "og:description", content: "Join 1Chance to start random 1-on-1 chats." },
     ],
   }),
@@ -80,7 +80,7 @@ function AuthPage() {
         const { data: userData } = await supabase.auth.getUser();
         const uid = userData.user?.id;
         if (!uid) {
-          toast.error("Signed up but no session yet — please sign in.");
+          toast.error("Signed up but no session yet \u2014 please sign in.");
           setMode("signin");
           return;
         }
