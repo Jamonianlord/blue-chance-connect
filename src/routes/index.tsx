@@ -54,10 +54,10 @@ function Landing() {
     else navigate({ to: "/auth" });
   };
 
-  const heroRef = useReveal<HTMLElement>();
-  const stepsRef = useReveal<HTMLElement>();
-  const featuresRef = useReveal<HTMLElement>();
-  const ctaRef = useReveal<HTMLElement>();
+  const heroRef = useReveal<HTMLDivElement>();
+  const stepsRef = useReveal<HTMLDivElement>();
+  const featuresRef = useReveal<HTMLDivElement>();
+  const ctaRef = useReveal<HTMLDivElement>();
 
   return (
     <div className="min-h-screen bg-background">
