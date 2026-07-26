@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-function useReveal<T extends HTMLElement>(): RefObject<T | null> {
+function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null> {
   const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
