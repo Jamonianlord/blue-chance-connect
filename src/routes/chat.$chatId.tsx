@@ -235,7 +235,6 @@ function ChatPage() {
 
   const endAndNext = async () => {
     await supabase.rpc("end_chat", { _chat_id: chatId });
-    navigate({ to: "/match" });
   };
 
   const goBack = async () => {
