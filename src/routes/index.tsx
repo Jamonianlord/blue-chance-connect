@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { ArrowRight, MessageCircle, Shuffle, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { ArrowRight, Heart, MessageCircle, ShieldCheck, Shuffle, Sparkles, Star, UserPlus, Zap } from "lucide-react";
+import { useEffect, useRef, type RefObject } from "react";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -18,6 +19,32 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null> {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.classList.add("is-revealed");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
+
 function Landing() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +53,11 @@ function Landing() {
     if (user && profile) navigate({ to: "/match" });
     else navigate({ to: "/auth" });
   };
+
+  const heroRef = useReveal<HTMLDivElement>();
+  const stepsRef = useReveal<HTMLDivElement>();
+  const featuresRef = useReveal<HTMLDivElement>();
+  const ctaRef = useReveal<HTMLDivElement>();
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,7 +73,7 @@ function Landing() {
                 "radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent) 0%, transparent 70%)",
             }}
           />
-          {/* soft floating blobs — same blue family, GPU-cheap */}
+          {/* soft floating blobs */}
           <div
             aria-hidden
             className="animate-drift pointer-events-none absolute -left-20 top-24 -z-10 h-64 w-64 rounded-full blur-3xl"
@@ -52,21 +84,87 @@ function Landing() {
             className="animate-drift pointer-events-none absolute -right-16 top-4 -z-10 h-56 w-56 rounded-full blur-3xl"
             style={{ background: "color-mix(in oklab, var(--brand) 12%, transparent)", animationDelay: "-6s" }}
           />
-          <div className="mx-auto max-w-4xl px-4 pb-16 pt-16 text-center sm:pt-28">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+          {/* tiny drifting dots */}
+          <div
+            aria-hidden
+            className="animate-float-slow pointer-events-none absolute left-[15%] top-[20%] -z-10 h-3 w-3 rounded-full bg-[var(--brand)] opacity-40"
+            style={{ animationDelay: "0s" }}
+          />
+          <div
+            aria-hidden
+            className="animate-float-slow pointer-events-none absolute right-[18%] top-[34%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
+            style={{ animationDelay: "-3s" }}
+          />
+          <div
+            aria-hidden
+            className="animate-float-slow pointer-events-none absolute left-[22%] bottom-[22%] -z-10 h-2.5 w-2.5 rounded-full bg-[var(--brand-soft)] opacity-60"
+            style={{ animationDelay: "-6s" }}
+          />
+          <div
+            aria-hidden
+            className="animate-pulse-soft pointer-events-none absolute right-[24%] bottom-[30%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
+            style={{ animationDelay: "-2s" }}
+          />
+
+          <div className="relative mx-auto max-w-4xl px-4 pb-16 pt-16 text-center sm:pt-28" ref={heroRef}>
+            <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
               <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
               Meet a stranger in seconds
             </div>
+
+            {/* Decorative icon stickers */}
+            <div className="pointer-events-none absolute left-1/2 top-0 -z-10 hidden sm:block" aria-hidden>
+              <div
+                className="animate-float-slow flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm"
+                style={{ animationDelay: "-2s", transform: "translateX(170px)" }}
+              >
+                <Heart className="h-4 w-4 text-[var(--brand)]" />
+              </div>
+            </div>
+            <div className="pointer-events-none absolute left-1/2 top-28 -z-10 hidden sm:block" aria-hidden>
+              <div
+                className="animate-float-slow flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-soft)] shadow-sm"
+                style={{ animationDelay: "-5s", transform: "translateX(-190px)" }}
+              >
+                <Star className="h-4 w-4 text-[var(--brand)]" />
+              </div>
+            </div>
+            <div className="pointer-events-none absolute left-1/2 top-16 -z-10 hidden md:block" aria-hidden>
+              <div
+                className="animate-float-slow flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm"
+                style={{ animationDelay: "-8s", transform: "translateX(230px)" }}
+              >
+                <Zap className="h-3.5 w-3.5 text-[var(--brand)]" />
+              </div>
+            </div>
+
             <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-              One click.<br />
-              One match.<br />
-              <span className="bg-clip-text text-transparent brand-gradient">One chance.</span>
+              <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.05s" }}>
+                One click.
+              </span>
+              <br />
+              <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.2s" }}>
+                One match.
+              </span>
+              <br />
+              <span
+                className="animate-line-reveal inline-block bg-clip-text text-transparent brand-gradient"
+                style={{ animationDelay: "0.35s" }}
+              >
+                One chance.
+              </span>
             </h1>
-            <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
+            <p
+              className="mx-auto mt-6 max-w-xl animate-fade-in-up text-base text-muted-foreground sm:text-lg"
+              style={{ animationDelay: "0.5s" }}
+            >
               1Chance connects you at random with someone new for a 1-on-1 chat.
               No feeds, no profiles to swipe — just a real conversation, right now.
             </p>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div
+              className="mt-9 flex flex-col items-center justify-center gap-3 animate-fade-in-up sm:flex-row"
+              style={{ animationDelay: "0.65s" }}
+            >
               <Button
                 size="lg"
                 onClick={start}
@@ -80,12 +178,11 @@ function Landing() {
                 </Button>
               )}
             </div>
-            
           </div>
         </section>
 
         {/* How it works */}
-        <section className="mx-auto max-w-5xl px-4 pb-4">
+        <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">Three steps, about thirty seconds.</p>
           <ol className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -96,7 +193,7 @@ function Landing() {
             ].map(({ icon: Icon, step, title, body }) => (
               <li
                 key={step}
-                className="relative rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="card-hover-glow relative rounded-2xl border border-border bg-white p-6 shadow-sm"
               >
                 <span className="absolute right-5 top-4 text-4xl font-extrabold text-[var(--brand-soft)]">{step}</span>
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
@@ -110,14 +207,14 @@ function Landing() {
         </section>
 
         {/* Features */}
-        <section className="mx-auto max-w-5xl px-4 py-16">
+        <section className="mx-auto max-w-5xl px-4 py-16 reveal" ref={featuresRef}>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
               { icon: Shuffle, title: "Truly random", body: "Every match is a fresh face from users online right now." },
               { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
               { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
             ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:shadow-md">
+              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-white p-6 shadow-sm">
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
                   <Icon className="h-5 w-5" />
                 </div>
@@ -129,8 +226,17 @@ function Landing() {
         </section>
 
         {/* CTA band */}
-        <section className="mx-auto max-w-5xl px-4 pb-20">
-          <div className="brand-gradient brand-glow rounded-3xl px-6 py-12 text-center text-white">
+        <section className="mx-auto max-w-5xl px-4 pb-20 reveal" ref={ctaRef}>
+          <div className="brand-gradient brand-glow relative overflow-hidden rounded-3xl px-6 py-12 text-center text-white">
+            <div
+              aria-hidden
+              className="animate-pulse-soft pointer-events-none absolute -left-10 top-0 h-32 w-32 rounded-full bg-white/10 blur-2xl"
+            />
+            <div
+              aria-hidden
+              className="animate-pulse-soft pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-white/10 blur-2xl"
+              style={{ animationDelay: "-2s" }}
+            />
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Someone's waiting to talk.</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-white/80">One click is all it takes to meet them.</p>
             <Button
