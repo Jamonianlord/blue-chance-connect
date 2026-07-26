@@ -263,21 +263,31 @@ function MatchPage() {
           </div>
         ) : (
           <div className="flex w-full flex-col items-center text-center">
-            <div className="relative flex h-40 w-40 items-center justify-center">
-              <div className="absolute inset-0 animate-ping rounded-full bg-[var(--brand)]/20" />
-              <div className="absolute inset-4 animate-pulse rounded-full bg-[var(--brand)]/30" />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
-                <Loader2 className="h-10 w-10 animate-spin text-white" />
+            <div className="relative flex h-44 w-44 items-center justify-center">
+              <div className="animate-ring-out absolute inset-0 rounded-full border border-[var(--brand)]/30" />
+              <div className="animate-ring-out absolute inset-0 rounded-full border border-[var(--brand)]/30" style={{ animationDelay: "-0.95s" }} />
+              <div className="animate-ring-out absolute inset-0 rounded-full border border-[var(--brand)]/30" style={{ animationDelay: "-1.9s" }} />
+              <div className="animate-breathe absolute inset-8 rounded-full bg-[var(--brand)]/15 blur-xl" />
+              <div className="animate-breathe relative flex h-24 w-24 items-center justify-center rounded-full brand-gradient brand-glow">
+                <div className="flex items-end gap-1.5">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="animate-dot block h-2 w-2 rounded-full bg-white"
+                      style={{ animationDelay: `${i * 0.18}s` }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-            <h2 className="mt-8 text-2xl font-bold">Finding your match\u2026</h2>
+            <h2 className="mt-8 text-2xl font-bold">Finding your match…</h2>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
               {searchingCount > 0 ? (
                 <>
                   <span className="font-medium">{searchingCount}</span> {searchingCount === 1 ? "person" : "people"} online now
                 </>
               ) : (
-                "Hang tight \u2014 we're looking for someone online right now who wants to chat."
+                "Hang tight — we're looking for someone online right now who wants to chat."
               )}
             </p>
             <Button
