@@ -24,12 +24,20 @@ export const Route = createFileRoute("/profile")({
   }),
 });
 
+const INTEREST_OPTIONS = [
+  "Music", "Movies", "Gaming", "Sports", "Travel", "Food", "Fitness",
+  "Books", "Art", "Tech", "Fashion", "Photography", "Anime", "Comedy",
+  "Dancing", "Cooking", "Nature", "Pets", "Cars", "Business",
+];
+const MAX_INTERESTS = 5;
+
 function ProfilePage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
+  const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
@@ -45,8 +53,20 @@ function ProfilePage() {
       setAge(String(profile.age));
       setGender(profile.gender === "other" ? "male" : profile.gender);
       setAvatarPath(profile.avatar_url ?? null);
+      setInterests(profile.interests ?? []);
     }
   }, [profile]);
+
+  const toggleInterest = (tag: string) => {
+    setInterests((cur) => {
+      if (cur.includes(tag)) return cur.filter((t) => t !== tag);
+      if (cur.length >= MAX_INTERESTS) {
+        toast.error(`Pick up to ${MAX_INTERESTS} interests`);
+        return cur;
+      }
+      return [...cur, tag];
+    });
+  };
 
   const onPickAvatar = async (file: File) => {
     if (!user) return;
@@ -82,7 +102,7 @@ function ProfilePage() {
     }
     setSaving(true);
     const { error } = await supabase.from("profiles").upsert({
-      id: user.id, name: name.trim(), age: Number(age), gender,
+      id: user.id, name: name.trim(), age: Number(age), gender, interests,
     });
     setSaving(false);
     if (error) {
@@ -158,6 +178,31 @@ function ProfilePage() {
                 </Label>
               ))}
             </RadioGroup>
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <Label>Interests</Label>
+              <span className="text-xs text-muted-foreground">{interests.length}/{MAX_INTERESTS}</span>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">Optional — helps break the ice with your match.</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {INTEREST_OPTIONS.map((tag) => {
+                const active = interests.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleInterest(tag)}
+                    className={"rounded-full border px-3 py-1.5 text-xs font-medium transition " +
+                      (active
+                        ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                        : "border-border bg-white text-foreground hover:bg-muted")}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div className="flex gap-2 pt-2">
             <Button onClick={save} disabled={saving} className="brand-gradient h-11 flex-1 rounded-full text-white">

@@ -85,7 +85,7 @@ function AuthPage() {
           return;
         }
         const { error: pErr } = await supabase.from("profiles").upsert({
-          id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender,
+          id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender, interests: [],
         });
         if (pErr) {
           console.error("[signup] profile upsert error", pErr);

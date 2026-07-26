@@ -8,6 +8,7 @@ export type Profile = {
   age: number;
   gender: "male" | "female" | "other";
   avatar_url: string | null;
+  interests: string[];
 };
 
 type Ctx = {
