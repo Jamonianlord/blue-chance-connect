@@ -80,7 +80,7 @@ function Landing() {
                 </Button>
               )}
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">18+ only · No downloads · Free forever</p>
+            
           </div>
         </section>
 
