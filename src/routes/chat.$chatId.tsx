@@ -46,6 +46,9 @@ function ChatPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [friendState, setFriendState] = useState<FriendState>("none");
+  const [friendshipId, setFriendshipId] = useState<string | null>(null);
+  const [friendActing, setFriendActing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
