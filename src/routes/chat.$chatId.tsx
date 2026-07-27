@@ -337,29 +337,75 @@ function ChatPage() {
         </div>
         <div className="flex items-center gap-1">
           <Logo className="hidden sm:inline-flex" />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-muted-foreground"><Flag className="h-4 w-4" /></Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Report this user</AlertDialogTitle>
-                <AlertDialogDescription>Tell us what happened. We review every report.</AlertDialogDescription>
-              </AlertDialogHeader>
-              <Textarea
-                placeholder="Reason (optional)"
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                maxLength={500}
-              />
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={reportPartner} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Submit report
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+
+          {!isFriendChat && !ended && friendState === "none" && (
+            <Button size="sm" variant="ghost" onClick={addFriend} disabled={friendActing}
+              className="rounded-full text-[var(--brand)] hover:bg-[var(--brand-soft)]">
+              <UserPlus className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Add friend</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "sent" && (
+            <Button size="sm" variant="ghost" disabled className="rounded-full text-muted-foreground">
+              <Check className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Request sent</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "incoming" && (
+            <Button size="sm" onClick={acceptFriend} disabled={friendActing}
+              className="rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
+              <Check className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Accept request</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "friends" && (
+            <span className="hidden items-center rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-medium text-[var(--brand)] sm:inline-flex">
+              Friends
+            </span>
+          )}
+
+          {!isFriendChat && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground"><Flag className="h-4 w-4" /></Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Report this user</AlertDialogTitle>
+                  <AlertDialogDescription>Tell us what happened. We review every report.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <Textarea
+                  placeholder="Reason (optional)"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  maxLength={500}
+                />
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={reportPartner} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Submit report
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {isFriendChat && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground"><UserMinus className="h-4 w-4" /></Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove friend?</AlertDialogTitle>
+                  <AlertDialogDescription>This chat will end and they'll be removed from your friends.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={unfriendFromChat} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Unfriend
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -379,11 +425,14 @@ function ChatPage() {
             </AlertDialogContent>
           </AlertDialog>
 
-          <Button size="sm" onClick={endAndNext} className="ml-1 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
-            <SkipForward className="mr-1 h-4 w-4" /> Next
-          </Button>
+          {!isFriendChat && (
+            <Button size="sm" onClick={endAndNext} className="ml-1 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
+              <SkipForward className="mr-1 h-4 w-4" /> Next
+            </Button>
+          )}
         </div>
       </header>
+
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-6">
         <div className="mx-auto max-w-2xl space-y-2">
