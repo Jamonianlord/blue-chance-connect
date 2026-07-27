@@ -29,7 +29,8 @@ export const Route = createFileRoute("/chat/$chatId")({
 });
 
 type Message = { id: string; chat_id: string; sender_id: string; content: string | null; image_url: string | null; created_at: string };
-type ChatRow = { id: string; user1_id: string; user2_id: string; ended_at: string | null; ended_by: string | null };
+type ChatRow = { id: string; user1_id: string; user2_id: string; ended_at: string | null; ended_by: string | null; chat_type?: "random" | "friend" };
+type FriendState = "none" | "sent" | "incoming" | "friends";
 
 function ChatPage() {
   const { chatId } = Route.useParams();
