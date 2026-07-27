@@ -496,8 +496,11 @@ function ChatPage() {
       <div className="border-t border-border bg-white/90 p-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-2">
           {ended ? (
-            <Button onClick={() => navigate({ to: "/match" })} className="brand-gradient h-11 w-full rounded-full text-white">
-              Find a new match
+            <Button
+              onClick={() => navigate({ to: isFriendChat ? "/chats" : "/match" })}
+              className="brand-gradient h-11 w-full rounded-full text-white"
+            >
+              {isFriendChat ? "Back to chats" : "Find a new match"}
             </Button>
           ) : (
             <>
