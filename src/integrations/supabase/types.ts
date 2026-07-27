@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -101,7 +101,6 @@ export type Database = {
           created_at: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
-          interests: string[]
           name: string
           updated_at: string
         }
@@ -111,7 +110,6 @@ export type Database = {
           created_at?: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
-          interests: string[]
           name: string
           updated_at?: string
         }
@@ -121,7 +119,6 @@ export type Database = {
           created_at?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
-          interests?: string[]
           name?: string
           updated_at?: string
         }
@@ -341,5 +338,3 @@ export const Constants = {
     },
   },
 } as const
-
-
