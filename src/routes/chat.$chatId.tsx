@@ -11,7 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Ban, Flag, Send, SkipForward, Loader2, Paperclip, X } from "lucide-react";
+import { ArrowLeft, Ban, Flag, Send, SkipForward, Loader2, Paperclip, X, UserPlus, Check, UserMinus } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SignedImage, Avatar } from "@/components/SignedImage";
 
@@ -29,7 +29,8 @@ export const Route = createFileRoute("/chat/$chatId")({
 });
 
 type Message = { id: string; chat_id: string; sender_id: string; content: string | null; image_url: string | null; created_at: string };
-type ChatRow = { id: string; user1_id: string; user2_id: string; ended_at: string | null; ended_by: string | null };
+type ChatRow = { id: string; user1_id: string; user2_id: string; ended_at: string | null; ended_by: string | null; chat_type?: "random" | "friend" };
+type FriendState = "none" | "sent" | "incoming" | "friends";
 
 function ChatPage() {
   const { chatId } = Route.useParams();
@@ -45,6 +46,9 @@ function ChatPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [friendState, setFriendState] = useState<FriendState>("none");
+  const [friendshipId, setFriendshipId] = useState<string | null>(null);
+  const [friendActing, setFriendActing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,6 +157,61 @@ function ChatPage() {
 
   const partnerId = chat && user ? (chat.user1_id === user.id ? chat.user2_id : chat.user1_id) : null;
   const ended = !!chat?.ended_at;
+  const isFriendChat = chat?.chat_type === "friend";
+
+  useEffect(() => {
+    if (!user || !partnerId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("friendships")
+        .select("*")
+        .or(`and(requester_id.eq.${user.id},addressee_id.eq.${partnerId}),and(requester_id.eq.${partnerId},addressee_id.eq.${user.id})`)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data) { setFriendState("none"); setFriendshipId(null); return; }
+      setFriendshipId(data.id);
+      if (data.status === "accepted") setFriendState("friends");
+      else if (data.status === "pending" && data.requester_id === user.id) setFriendState("sent");
+      else if (data.status === "pending" && data.addressee_id === user.id) setFriendState("incoming");
+      else setFriendState("none");
+    })();
+    return () => { cancelled = true; };
+  }, [user, partnerId]);
+
+  const addFriend = async () => {
+    if (!user || !partnerId || friendActing) return;
+    setFriendActing(true);
+    const { data, error } = await (supabase as any)
+      .from("friendships")
+      .insert({ requester_id: user.id, addressee_id: partnerId })
+      .select().single();
+    setFriendActing(false);
+    if (error) { toast.error(error.message); return; }
+    setFriendshipId(data.id);
+    setFriendState("sent");
+    toast.success("Friend request sent");
+  };
+
+  const acceptFriend = async () => {
+    if (!friendshipId || friendActing) return;
+    setFriendActing(true);
+    const { data, error } = await (supabase as any).rpc("accept_friend_request", { p_request_id: friendshipId });
+    setFriendActing(false);
+    if (error) { toast.error(error.message); return; }
+    setFriendState("friends");
+    toast.success("You're now friends!");
+    if (data && data !== chatId) navigate({ to: "/chat/$chatId", params: { chatId: data as string } });
+  };
+
+  const unfriendFromChat = async () => {
+    if (!friendshipId) return;
+    const { error } = await (supabase as any).rpc("unfriend", { p_friendship_id: friendshipId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Removed from friends");
+    navigate({ to: "/chats" });
+  };
+
 
   const send = async () => {
     const text = input.trim();
@@ -278,29 +337,75 @@ function ChatPage() {
         </div>
         <div className="flex items-center gap-1">
           <Logo className="hidden sm:inline-flex" />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-muted-foreground"><Flag className="h-4 w-4" /></Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Report this user</AlertDialogTitle>
-                <AlertDialogDescription>Tell us what happened. We review every report.</AlertDialogDescription>
-              </AlertDialogHeader>
-              <Textarea
-                placeholder="Reason (optional)"
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                maxLength={500}
-              />
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={reportPartner} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Submit report
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+
+          {!isFriendChat && !ended && friendState === "none" && (
+            <Button size="sm" variant="ghost" onClick={addFriend} disabled={friendActing}
+              className="rounded-full text-[var(--brand)] hover:bg-[var(--brand-soft)]">
+              <UserPlus className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Add friend</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "sent" && (
+            <Button size="sm" variant="ghost" disabled className="rounded-full text-muted-foreground">
+              <Check className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Request sent</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "incoming" && (
+            <Button size="sm" onClick={acceptFriend} disabled={friendActing}
+              className="rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
+              <Check className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Accept request</span>
+            </Button>
+          )}
+          {!isFriendChat && friendState === "friends" && (
+            <span className="hidden items-center rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-medium text-[var(--brand)] sm:inline-flex">
+              Friends
+            </span>
+          )}
+
+          {!isFriendChat && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground"><Flag className="h-4 w-4" /></Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Report this user</AlertDialogTitle>
+                  <AlertDialogDescription>Tell us what happened. We review every report.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <Textarea
+                  placeholder="Reason (optional)"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  maxLength={500}
+                />
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={reportPartner} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Submit report
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {isFriendChat && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground"><UserMinus className="h-4 w-4" /></Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove friend?</AlertDialogTitle>
+                  <AlertDialogDescription>This chat will end and they'll be removed from your friends.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={unfriendFromChat} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Unfriend
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -320,11 +425,14 @@ function ChatPage() {
             </AlertDialogContent>
           </AlertDialog>
 
-          <Button size="sm" onClick={endAndNext} className="ml-1 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
-            <SkipForward className="mr-1 h-4 w-4" /> Next
-          </Button>
+          {!isFriendChat && (
+            <Button size="sm" onClick={endAndNext} className="ml-1 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90">
+              <SkipForward className="mr-1 h-4 w-4" /> Next
+            </Button>
+          )}
         </div>
       </header>
+
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-6">
         <div className="mx-auto max-w-2xl space-y-2">
@@ -388,8 +496,11 @@ function ChatPage() {
       <div className="border-t border-border bg-white/90 p-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-2">
           {ended ? (
-            <Button onClick={() => navigate({ to: "/match" })} className="brand-gradient h-11 w-full rounded-full text-white">
-              Find a new match
+            <Button
+              onClick={() => navigate({ to: isFriendChat ? "/chats" : "/match" })}
+              className="brand-gradient h-11 w-full rounded-full text-white"
+            >
+              {isFriendChat ? "Back to chats" : "Find a new match"}
             </Button>
           ) : (
             <>
