@@ -9,26 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as MatchRouteImport } from './routes/match'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MatchRouteImport } from './routes/match'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChatChatIdRouteImport } from './routes/chat.$chatId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchRoute = MatchRouteImport.update({
-  id: '/match',
-  path: '/match',
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -36,9 +26,19 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
+const MatchRoute = MatchRouteImport.update({
+  id: '/match',
+  path: '/match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatChatIdRoute = ChatChatIdRouteImport.update({
@@ -75,7 +75,12 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/match' | '/profile' | '/support' | '/chat/$chatId'
+    | '/'
+    | '/auth'
+    | '/match'
+    | '/profile'
+    | '/support'
+    | '/chat/$chatId'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/auth' | '/match' | '/profile' | '/support' | '/chat/$chatId'
   id:
@@ -99,25 +104,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/match': {
-      id: '/match'
-      path: '/match'
-      fullPath: '/match'
-      preLoaderRoute: typeof MatchRouteImport
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -127,11 +118,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
+    '/match': {
+      id: '/match'
+      path: '/match'
+      fullPath: '/match'
+      preLoaderRoute: typeof MatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat/$chatId': {
