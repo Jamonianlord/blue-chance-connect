@@ -157,6 +157,61 @@ function ChatPage() {
 
   const partnerId = chat && user ? (chat.user1_id === user.id ? chat.user2_id : chat.user1_id) : null;
   const ended = !!chat?.ended_at;
+  const isFriendChat = chat?.chat_type === "friend";
+
+  useEffect(() => {
+    if (!user || !partnerId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("friendships")
+        .select("*")
+        .or(`and(requester_id.eq.${user.id},addressee_id.eq.${partnerId}),and(requester_id.eq.${partnerId},addressee_id.eq.${user.id})`)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data) { setFriendState("none"); setFriendshipId(null); return; }
+      setFriendshipId(data.id);
+      if (data.status === "accepted") setFriendState("friends");
+      else if (data.status === "pending" && data.requester_id === user.id) setFriendState("sent");
+      else if (data.status === "pending" && data.addressee_id === user.id) setFriendState("incoming");
+      else setFriendState("none");
+    })();
+    return () => { cancelled = true; };
+  }, [user, partnerId]);
+
+  const addFriend = async () => {
+    if (!user || !partnerId || friendActing) return;
+    setFriendActing(true);
+    const { data, error } = await (supabase as any)
+      .from("friendships")
+      .insert({ requester_id: user.id, addressee_id: partnerId })
+      .select().single();
+    setFriendActing(false);
+    if (error) { toast.error(error.message); return; }
+    setFriendshipId(data.id);
+    setFriendState("sent");
+    toast.success("Friend request sent");
+  };
+
+  const acceptFriend = async () => {
+    if (!friendshipId || friendActing) return;
+    setFriendActing(true);
+    const { data, error } = await (supabase as any).rpc("accept_friend_request", { p_request_id: friendshipId });
+    setFriendActing(false);
+    if (error) { toast.error(error.message); return; }
+    setFriendState("friends");
+    toast.success("You're now friends!");
+    if (data && data !== chatId) navigate({ to: "/chat/$chatId", params: { chatId: data as string } });
+  };
+
+  const unfriendFromChat = async () => {
+    if (!friendshipId) return;
+    const { error } = await (supabase as any).rpc("unfriend", { p_friendship_id: friendshipId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Removed from friends");
+    navigate({ to: "/chats" });
+  };
+
 
   const send = async () => {
     const text = input.trim();
