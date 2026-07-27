@@ -34,6 +34,7 @@ export type Database = {
       }
       chats: {
         Row: {
+          chat_type: Database["public"]["Enums"]["chat_type_enum"]
           created_at: string
           ended_at: string | null
           ended_by: string | null
@@ -42,6 +43,7 @@ export type Database = {
           user2_id: string
         }
         Insert: {
+          chat_type?: Database["public"]["Enums"]["chat_type_enum"]
           created_at?: string
           ended_at?: string | null
           ended_by?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           user2_id: string
         }
         Update: {
+          chat_type?: Database["public"]["Enums"]["chat_type_enum"]
           created_at?: string
           ended_at?: string | null
           ended_by?: string | null
@@ -58,6 +61,44 @@ export type Database = {
           user2_id?: string
         }
         Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          chat_id: string | null
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -188,6 +229,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_friend_request: { Args: { p_request_id: string }; Returns: string }
       end_chat: { Args: { _chat_id: string }; Returns: undefined }
       find_or_wait_match: {
         Args: { _looking_for: Database["public"]["Enums"]["gender_type"] }
@@ -204,8 +246,11 @@ export type Database = {
           name: string
         }[]
       }
+      unfriend: { Args: { p_friendship_id: string }; Returns: undefined }
     }
     Enums: {
+      chat_type_enum: "random" | "friend"
+      friendship_status: "pending" | "accepted" | "declined"
       gender_type: "male" | "female" | "other"
     }
     CompositeTypes: {
@@ -334,6 +379,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      chat_type_enum: ["random", "friend"],
+      friendship_status: ["pending", "accepted", "declined"],
       gender_type: ["male", "female", "other"],
     },
   },
