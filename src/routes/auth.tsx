@@ -177,7 +177,14 @@ function AuthPage() {
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-baseline justify-between">
+                <Label htmlFor="password">Password</Label>
+                {mode === "signin" && (
+                  <Link to="/forgot-password" className="text-xs text-[var(--brand)] hover:underline">
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <Button
