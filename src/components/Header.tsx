@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+﻿import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -51,6 +51,9 @@ export function Header() {
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
+                <Link to="/chats"><MessageCircle className="h-4 w-4" /> Chats</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
                 <Link to="/profile"><UserIcon className="h-4 w-4" /><span className="hidden sm:inline">Profile</span></Link>
               </Button>
               <Button
@@ -70,3 +73,4 @@ export function Header() {
     </header>
   );
 }
+
