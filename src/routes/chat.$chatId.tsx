@@ -87,6 +87,10 @@ function formatTime(seconds: number) {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
+function msgIsFromMe(msg: Message, userId: string | null): boolean {
+  return msg.sender_id === userId;
+}
+
 function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; durationSeconds: number; mine: boolean }) {
   const [playing, setPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
@@ -201,7 +205,7 @@ const [friendBusy, setFriendBusy] = useState(false);
       else setFriendshipStatus("none");
     };
 
-    const fetchChatAndMessages = async () => {
+const fetchChatAndMessages = async () => {
       const { data: c } = await supabase.from("chats").select("*").eq("id", chatId).maybeSingle();
       if (cancelled) return;
       if (!c) {
@@ -225,6 +229,9 @@ const [friendBusy, setFriendBusy] = useState(false);
 
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at");
       if (!cancelled) setMessages((msgs ?? []) as Message[]);
+      
+      // Mark chat as read when it loads
+      if (!cancelled) await (supabase as any).rpc("mark_chat_read", { _chat_id: chatId });
     };
 
     fetchChatAndMessages();
@@ -237,17 +244,22 @@ const [friendBusy, setFriendBusy] = useState(false);
       if (cancelled || !user) return;
       const newChannel = supabase
         .channel(`chat:${chatId}`, { config: { broadcast: { self: false } } })
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
-          (payload) => {
-            const msg = payload.new as Message;
-            setMessages((cur) => {
-              if (cur.some((m) => m.id === msg.id)) return cur;
-              return [...cur, msg];
-            });
-          }
-        )
+.on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+            (payload) => {
+              const msg = payload.new as Message;
+              setMessages((cur) => {
+                if (cur.some((m) => m.id === msg.id)) return cur;
+                return [...cur, msg];
+              });
+              
+              // Mark as read when receiving a new message from the other user while we're visible
+              if (!cancelled && !msgIsFromMe(msg, user?.id)) {
+                (supabase as any).rpc("mark_chat_read", { _chat_id: chatId }).catch(console.error);
+              }
+            }
+          )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "chats", filter: `id=eq.${chatId}` },

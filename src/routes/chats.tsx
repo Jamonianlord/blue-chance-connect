@@ -37,6 +37,7 @@ type FriendRow = {
   friend_name: string | null;
   friend_avatar_url: string | null;
   created_at: string;
+  unread_count: number;
 };
 
 type RequestRow = {
@@ -215,6 +216,11 @@ function ChatsPage() {
                 >
                   <Avatar path={f.friend_avatar_url} name={f.friend_name ?? "?"} size={44} />
                   <div className="text-sm font-semibold">{f.friend_name ?? "Friend"}</div>
+                  {f.unread_count > 0 && (
+                    <span className="flex h-2 w-2 items-center justify-center rounded-full bg-[var(--brand)] text-xs text-white">
+                      {f.unread_count > 99 ? "99+" : f.unread_count}
+                    </span>
+                  )}
                 </Link>
 
                 <AlertDialog>

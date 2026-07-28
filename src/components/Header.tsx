@@ -10,26 +10,46 @@ export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user) { setPendingCount(0); return; }
+    if (!user) { 
+      setPendingCount(0); 
+      setUnreadCount(0); 
+      return; 
+    }
     let cancelled = false;
     const load = async () => {
+      // Load pending friend requests count
       const { count } = await (supabase as any)
         .from("friendships")
         .select("id", { count: "exact", head: true })
         .eq("addressee_id", user.id)
         .eq("status", "pending");
       if (!cancelled) setPendingCount(count ?? 0);
+      
+      // Load total unread count
+      const { count: unreadCountResult, error } = await (supabase as any)
+        .rpc("get_total_unread_count");
+      if (!error && !cancelled) setUnreadCount(unreadCountResult ?? 0);
     };
     load();
+    
+    // Set up realtime subscriptions for both
     const channel = (supabase as any)
-      .channel(`friendships:${user.id}`)
+      .channel(`header:${user.id}`)
       .on("postgres_changes",
         { event: "*", schema: "public", table: "friendships", filter: `addressee_id=eq.${user.id}` },
         () => load())
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "messages", filter: "read_at=is.null" },
+        () => load()) // This will trigger when any unread messages change
       .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+    
+    return () => { 
+      cancelled = true; 
+      supabase.removeChannel(channel); 
+    };
   }, [user]);
 
   return (
@@ -43,9 +63,9 @@ export function Header() {
                 <Link to="/chats">
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Chats</span>
-                  {pendingCount > 0 && (
+{pendingCount > 0 || unreadCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-bold text-white ring-2 ring-background">
-                      {pendingCount > 9 ? "9+" : pendingCount}
+                      {pendingCount + unreadCount > 9 ? "9+" : pendingCount + unreadCount}
                     </span>
                   )}
                 </Link>
