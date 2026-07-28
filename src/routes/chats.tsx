@@ -37,6 +37,10 @@ type FriendRow = {
   friend_name: string | null;
   friend_avatar_url: string | null;
   created_at: string;
+  last_message_at: string | null;
+  last_message_sender_id: string | null;
+  last_message_kind: string | null;
+  last_message_text: string | null;
   unread_count: number;
 };
 
@@ -47,6 +51,31 @@ type RequestRow = {
   requester_avatar_url: string | null;
   created_at: string;
 };
+
+function formatStamp(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  if (now.getTime() - d.getTime() < 7 * 864e5) return d.toLocaleDateString([], { weekday: "short" });
+  return d.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function previewText(f: FriendRow, meId: string | undefined) {
+  if (!f.last_message_at) return "Say hi 👋";
+  const body =
+    f.last_message_kind === "image"
+      ? "📷 Photo"
+      : f.last_message_kind === "audio"
+        ? "🎤 Voice message"
+        : (f.last_message_text ?? "");
+  const mine = meId && f.last_message_sender_id === meId;
+  return mine ? `You: ${body}` : body;
+}
 
 function ChatsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -203,78 +232,109 @@ function ChatsPage() {
             No friends yet. Add someone from an active chat to see them here.
           </div>
         ) : (
-          <div className="space-y-2">
-            {friends.map((f) => (
-              <div
-                key={f.friendship_id}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-white p-3"
-              >
-                <Link
-                  to="/chat/$chatId"
-                  params={{ chatId: f.chat_id ?? "" }}
-                  className="flex flex-1 items-center gap-3"
-                >
-                  <Avatar path={f.friend_avatar_url} name={f.friend_name ?? "?"} size={44} />
-                  <div className="text-sm font-semibold">{f.friend_name ?? "Friend"}</div>
-                  {f.unread_count > 0 && (
-                    <span className="flex h-2 w-2 items-center justify-center rounded-full bg-[var(--brand)] text-xs text-white">
-                      {f.unread_count > 99 ? "99+" : f.unread_count}
-                    </span>
-                  )}
-                </Link>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground">
-                      <UserMinus className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove friend?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You'll no longer be able to chat with {f.friend_name ?? "this person"} here.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => unfriend(f.friendship_id)}
-                        className="bg-destructive text-destructive-foreground"
+          <div className="-mx-4 divide-y divide-border/50 border-y border-border/50">
+            {friends.map((f) => {
+              const unread = f.unread_count > 0;
+              return (
+                <div key={f.friendship_id} className="group relative">
+                  <Link
+                    to="/chat/$chatId"
+                    params={{ chatId: f.chat_id ?? "" }}
+                    className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--brand-soft)]/40 active:bg-[var(--brand-soft)]/60"
+                  >
+                    <Avatar path={f.friend_avatar_url} name={f.friend_name ?? "?"} size={48} />
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={
+                          "truncate text-[15px] leading-tight " +
+                          (unread ? "font-bold text-foreground" : "font-semibold text-foreground")
+                        }
                       >
-                        Remove
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground">
-                      <Ban className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Block {f.friend_name ?? "this person"}?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        They'll be removed as a friend and won't be matched with you again.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => blockFriend(f.friendship_id, f.friend_id)}
-                        className="bg-destructive text-destructive-foreground"
+                        {f.friend_name ?? "Friend"}
+                      </div>
+                      <div
+                        className={
+                          "mt-0.5 truncate text-sm " +
+                          (unread ? "font-semibold text-foreground" : "text-muted-foreground")
+                        }
                       >
-                        Block
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            ))}
+                        {previewText(f, user?.id)}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1 pl-2">
+                      <span
+                        className={
+                          "text-[11px] " + (unread ? "font-semibold text-[var(--brand)]" : "text-muted-foreground")
+                        }
+                      >
+                        {formatStamp(f.last_message_at ?? f.created_at)}
+                      </span>
+                      {unread ? (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand)] px-1.5 text-[11px] font-semibold leading-none text-white">
+                          {f.unread_count > 99 ? "99+" : f.unread_count}
+                        </span>
+                      ) : (
+                        <span className="h-5" />
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-white/95 px-1 opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove friend?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            You'll no longer be able to chat with {f.friend_name ?? "this person"} here.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => unfriend(f.friendship_id)}
+                            className="bg-destructive text-destructive-foreground"
+                          >
+                            Remove
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
+                          <Ban className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Block {f.friend_name ?? "this person"}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            They'll be removed as a friend and won't be matched with you again.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => blockFriend(f.friendship_id, f.friend_id)}
+                            className="bg-destructive text-destructive-foreground"
+                          >
+                            Block
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
         )}
       </main>
     </div>
