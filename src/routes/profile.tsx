@@ -103,7 +103,7 @@ function ProfilePage() {
     setSaving(true);
     const { error } = await supabase.from("profiles").upsert({
       id: user.id, name: name.trim(), age: Number(age), gender, interests,
-    });
+    } as never);
     setSaving(false);
     if (error) {
       console.error("[profile] save error", error);

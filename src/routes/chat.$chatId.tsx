@@ -350,7 +350,7 @@ const send = async () => {
       setMessages((cur) => cur.filter((m) => m.id !== tempId));
     } else if (data) {
       setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
-      supabase.from("analytics_events").insert({ user_id: user.id, event_type: "message_sent" });
+      (supabase as any).from("analytics_events").insert({ user_id: user.id, event_type: "message_sent" });
     }
     setSending(false);
   };

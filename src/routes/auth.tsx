@@ -86,7 +86,7 @@ function AuthPage() {
         }
         const { error: pErr } = await supabase.from("profiles").upsert({
           id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender, interests: [],
-        });
+        } as never);
         if (pErr) {
           console.error("[signup] profile upsert error", pErr);
           toast.error(`Couldn't save profile: ${pErr.message}`);
