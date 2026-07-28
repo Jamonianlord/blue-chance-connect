@@ -214,6 +214,7 @@ const fetchChatAndMessages = async () => {
         return;
       }
       setChat(c as ChatRow);
+      supabase.rpc("mark_chat_read", { _chat_id: chatId });
 
       const { data: p } = await supabase.rpc("get_chat_partner", { _chat_id: chatId });
       const partner = Array.isArray(p) ? p[0] : p;
