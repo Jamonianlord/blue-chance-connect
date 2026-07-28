@@ -442,6 +442,7 @@ setMessages((cur) => [
 
           setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
         } catch (e) {
+          console.error("[chat] audio upload error", e);
           const msg = e instanceof Error ? e.message : "Upload failed";
           toast.error(msg);
           setMessages((cur) => cur.filter((m) => m.id !== tempId));
