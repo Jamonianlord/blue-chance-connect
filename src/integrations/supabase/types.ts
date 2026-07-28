@@ -65,28 +65,34 @@ export type Database = {
       friendships: {
         Row: {
           addressee_id: string
+          addressee_last_read_at: string
           chat_id: string | null
           created_at: string
           id: string
           requester_id: string
+          requester_last_read_at: string
           status: Database["public"]["Enums"]["friendship_status"]
           updated_at: string
         }
         Insert: {
           addressee_id: string
+          addressee_last_read_at?: string
           chat_id?: string | null
           created_at?: string
           id?: string
           requester_id: string
+          requester_last_read_at?: string
           status?: Database["public"]["Enums"]["friendship_status"]
           updated_at?: string
         }
         Update: {
           addressee_id?: string
+          addressee_last_read_at?: string
           chat_id?: string | null
           created_at?: string
           id?: string
           requester_id?: string
+          requester_last_read_at?: string
           status?: Database["public"]["Enums"]["friendship_status"]
           updated_at?: string
         }
@@ -246,6 +252,23 @@ export type Database = {
           name: string
         }[]
       }
+      get_my_friends: {
+        Args: never
+        Returns: {
+          chat_id: string
+          created_at: string
+          friend_avatar_url: string
+          friend_id: string
+          friend_name: string
+          friendship_id: string
+          last_message_at: string
+          last_message_kind: string
+          last_message_sender_id: string
+          last_message_text: string
+          unread_count: number
+        }[]
+      }
+      mark_chat_read: { Args: { _chat_id: string }; Returns: undefined }
       unfriend: { Args: { p_friendship_id: string }; Returns: undefined }
     }
     Enums: {
