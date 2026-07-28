@@ -37,6 +37,10 @@ type FriendRow = {
   friend_name: string | null;
   friend_avatar_url: string | null;
   created_at: string;
+  last_message_at: string | null;
+  last_message_sender_id: string | null;
+  last_message_kind: string | null;
+  last_message_text: string | null;
   unread_count: number;
 };
 
@@ -47,6 +51,31 @@ type RequestRow = {
   requester_avatar_url: string | null;
   created_at: string;
 };
+
+function formatStamp(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  if (now.getTime() - d.getTime() < 7 * 864e5) return d.toLocaleDateString([], { weekday: "short" });
+  return d.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function previewText(f: FriendRow, meId: string | undefined) {
+  if (!f.last_message_at) return "Say hi 👋";
+  const body =
+    f.last_message_kind === "image"
+      ? "📷 Photo"
+      : f.last_message_kind === "audio"
+        ? "🎤 Voice message"
+        : (f.last_message_text ?? "");
+  const mine = meId && f.last_message_sender_id === meId;
+  return mine ? `You: ${body}` : body;
+}
 
 function ChatsPage() {
   const { user, loading: authLoading } = useAuth();
