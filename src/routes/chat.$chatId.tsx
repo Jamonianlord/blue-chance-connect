@@ -28,6 +28,10 @@ import {
   X,
   UserPlus,
   Clock,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SignedImage, Avatar } from "@/components/SignedImage";
@@ -51,6 +55,8 @@ type Message = {
   sender_id: string;
   content: string | null;
   image_url: string | null;
+  audio_url: string | null;
+  duration_seconds: number | null;
   created_at: string;
 };
 
@@ -75,6 +81,68 @@ function formatDuration(startIso: string, endIso: string) {
   return `${mins}m ${secs}s`;
 }
 
+function formatTime(seconds: number) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; durationSeconds: number; mine: boolean }) {
+  const [playing, setPlaying] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchSignedUrl = async () => {
+      try {
+        const { data } = await supabase.storage.from("chat-audio").createSignedUrl(audioUrl, 3600);
+        if (!cancelled && data?.signedUrl) {
+          setAudioSrc(data.signedUrl);
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchSignedUrl();
+    return () => { cancelled = true; };
+  }, [audioUrl]);
+
+  useEffect(() => {
+    if (playing && audioRef.current) {
+      audioRef.current.play().catch(() => setPlaying(false));
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [playing]);
+
+  const togglePlay = () => {
+    if (loading || !audioSrc) return;
+    setPlaying((p) => !p);
+  };
+
+  const handleEnded = () => setPlaying(false);
+
+  return (
+    <div className="flex items-center gap-2 px-1">
+      <audio ref={audioRef} src={audioSrc} onEnded={handleEnded} />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-white/90"
+        onClick={togglePlay}
+        disabled={loading}
+        aria-label={playing ? "Pause" : "Play"}
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      </Button>
+      <span className="text-xs text-white/70 min-w-[50px]">{formatTime(durationSeconds)}</span>
+    </div>
+  );
+}
+
 function ChatPage() {
   const { chatId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
@@ -92,11 +160,17 @@ function ChatPage() {
   const [reportReason, setReportReason] = useState("");
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
-  const [friendBusy, setFriendBusy] = useState(false);
+const [friendBusy, setFriendBusy] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordingStartRef = useRef<number>(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -236,7 +310,7 @@ function ChatPage() {
   const ended = !!chat?.ended_at;
   const isFriendChat = chat?.chat_type === "friend";
 
-  const send = async () => {
+const send = async () => {
     const text = input.trim();
     if (!text || !user || sending || ended) return;
     setSending(true);
@@ -248,6 +322,8 @@ function ChatPage() {
       sender_id: user.id,
       content: text,
       image_url: null,
+      audio_url: null,
+      duration_seconds: null,
       created_at: new Date().toISOString(),
     };
     setMessages((cur) => [...cur, optimisticMsg]);
@@ -282,9 +358,9 @@ function ChatPage() {
     try {
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${chatId}/${user.id}-${Date.now()}.${ext}`;
-      setMessages((cur) => [
+setMessages((cur) => [
         ...cur,
-        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, created_at: new Date().toISOString() },
+        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString() },
       ]);
       const { error: upErr } = await supabase.storage.from("chat-images").upload(path, file, { contentType: file.type });
       if (upErr) throw upErr;
@@ -295,8 +371,93 @@ function ChatPage() {
       const msg = e instanceof Error ? e.message : "Upload failed";
       toast.error(msg);
       setMessages((cur) => cur.filter((m) => m.id !== tempId));
-    } finally {
+} finally {
       setUploading(false);
+    }
+  };
+
+  const sendAudio = async () => {
+    if (!user || recording || ended) return;
+    try {
+      mediaRecorderRef.current?.stop();
+      const stream = mediaRecorderRef.current?.stream;
+      stream?.getTracks().forEach((t) => t.stop());
+    } catch {
+      // ignore
+    }
+  };
+
+  const toggleRecording = async () => {
+    if (!user || ended) return;
+
+    if (recording) {
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+      recordingStartRef.current = Date.now();
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
+        setRecording(false);
+        setRecordingTime(0);
+
+        if (audioChunksRef.current.length === 0) return;
+
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm;codecs=opus" });
+        const durationMs = Date.now() - recordingStartRef.current;
+        const durationSeconds = Math.round(durationMs / 1000);
+        const tempId = crypto.randomUUID();
+
+        setUploading(true);
+        setMessages((cur) => [
+          ...cur,
+          { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString() },
+        ]);
+
+        try {
+          const path = `${chatId}/${user.id}-${Date.now()}.webm`;
+          const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: "audio/webm" });
+          if (upErr) throw upErr;
+
+          const { data, error } = await (supabase as any)
+            .from("messages")
+            .insert({ chat_id: chatId, sender_id: user.id, audio_url: path, duration_seconds: durationSeconds })
+            .select()
+            .single();
+          if (error) throw error;
+
+          setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Upload failed";
+          toast.error(msg);
+          setMessages((cur) => cur.filter((m) => m.id !== tempId));
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      recorder.start(200);
+      setRecording(true);
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime((t) => t + 1);
+      }, 1000);
+    } catch (e) {
+      toast.error("Could not access microphone");
+      console.error(e);
     }
   };
 
@@ -480,9 +641,10 @@ function ChatPage() {
               Say hi 👋 — you have one chance to make it a great chat.
             </div>
           )}
-          {messages.map((m) => {
+{messages.map((m) => {
             const mine = m.sender_id === user!.id;
             const isImage = !!m.image_url;
+            const isAudio = !!m.audio_url;
             return (
               <div key={m.id} className={"flex " + (mine ? "justify-end" : "justify-start")}>
                 <div
@@ -509,10 +671,16 @@ function ChatPage() {
                         <Loader2 className="h-5 w-5 animate-spin text-white/80" />
                       </div>
                     )
+                  ) : isAudio ? (
+                    <AudioPlayer
+                      audioUrl={m.audio_url!}
+                      durationSeconds={m.duration_seconds ?? 0}
+                      mine={mine}
+                    />
                   ) : (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   )}
-                  <div className={"px-2 pb-1 text-[10px] " + (isImage ? "pt-1 " : "mt-1 ") + (mine ? "text-white/70" : "text-muted-foreground")}>
+                  <div className={"px-2 pb-1 text-[10px] " + (isImage ? "pt-1 " : isAudio ? "pt-1 " : "mt-1 ") + (mine ? "text-white/70" : "text-muted-foreground")}>
                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
                 </div>
@@ -563,7 +731,7 @@ function ChatPage() {
                   e.target.value = "";
                 }}
               />
-              <Button
+<Button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
@@ -574,6 +742,23 @@ function ChatPage() {
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </Button>
+              <Button
+                type="button"
+                onClick={toggleRecording}
+                disabled={uploading || ended}
+                size="icon"
+                variant={recording ? "default" : "ghost"}
+                className={`h-11 w-11 shrink-0 rounded-full ${recording ? "bg-[var(--brand)] text-white animate-pulse" : "text-[var(--brand)] hover:bg-[var(--brand-soft)]"}`}
+                aria-label={recording ? "Stop recording" : "Record voice message"}
+              >
+                {recording ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+              </Button>
+              {recording && (
+                <div className="flex items-center gap-1.5 text-xs text-[var(--brand)] font-medium px-2 bg-[var(--brand-soft)] rounded-full">
+                  <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--brand)]" />
+                  {recordingTime}s
+                </div>
+              )}
               <Input
                 value={input}
                 onChange={(e) => onType(e.target.value)}
