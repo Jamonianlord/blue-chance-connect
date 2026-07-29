@@ -759,13 +759,13 @@ setMessages((cur) => [
                   e.target.value = "";
                 }}
               />
-<Button
+              <Button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
                 size="icon"
                 variant="ghost"
-                className="h-11 w-11 shrink-0 rounded-full text-[var(--brand)] hover:bg-[var(--brand-soft)]"
+                className="h-10 w-10 shrink-0 rounded-full text-[var(--brand)] transition-transform hover:bg-[var(--brand-soft)] active:scale-95"
                 aria-label="Attach image"
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
@@ -776,13 +776,13 @@ setMessages((cur) => [
                 disabled={uploading || ended}
                 size="icon"
                 variant={recording ? "default" : "ghost"}
-                className={`h-11 w-11 shrink-0 rounded-full ${recording ? "bg-[var(--brand)] text-white animate-pulse" : "text-[var(--brand)] hover:bg-[var(--brand-soft)]"}`}
+                className={`h-10 w-10 shrink-0 rounded-full transition-transform active:scale-95 ${recording ? "animate-pulse bg-[var(--brand)] text-white" : "text-[var(--brand)] hover:bg-[var(--brand-soft)]"}`}
                 aria-label={recording ? "Stop recording" : "Record voice message"}
               >
                 {recording ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
               </Button>
               {recording && (
-                <div className="flex items-center gap-1.5 text-xs text-[var(--brand)] font-medium px-2 bg-[var(--brand-soft)] rounded-full">
+                <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-2 py-1 text-xs font-medium text-[var(--brand)]">
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--brand)]" />
                   {recordingTime}s
                 </div>
@@ -797,14 +797,15 @@ setMessages((cur) => [
                   }
                 }}
                 placeholder="Type a message…"
-                className="h-11 flex-1 rounded-full border-border bg-muted/50"
+                className="h-10 flex-1 rounded-full border-0 bg-transparent px-3 text-[15px] shadow-none focus-visible:ring-0"
                 maxLength={2000}
               />
               <Button
                 onClick={send}
                 disabled={sending || !input.trim()}
                 size="icon"
-                className="h-11 w-11 shrink-0 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90"
+                className="h-10 w-10 shrink-0 rounded-full bg-[var(--brand)] transition-all hover:bg-[var(--brand)]/90 hover:scale-105 active:scale-95 disabled:opacity-40"
+                aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
