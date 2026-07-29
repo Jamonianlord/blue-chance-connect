@@ -230,11 +230,11 @@ function Landing() {
           <div className="brand-gradient brand-glow relative overflow-hidden rounded-3xl px-6 py-12 text-center text-white">
             <div
               aria-hidden
-              className="animate-pulse-soft pointer-events-none absolute -left-10 top-0 h-32 w-32 rounded-full bg-card/10 blur-2xl"
+              className="animate-pulse-soft pointer-events-none absolute -left-10 top-0 h-32 w-32 rounded-full bg-white/10 blur-2xl"
             />
             <div
               aria-hidden
-              className="animate-pulse-soft pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-card/10 blur-2xl"
+              className="animate-pulse-soft pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-white/10 blur-2xl"
               style={{ animationDelay: "-2s" }}
             />
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Someone's waiting to talk.</h2>
@@ -242,7 +242,7 @@ function Landing() {
             <Button
               size="lg"
               onClick={start}
-              className="mt-6 h-12 rounded-full bg-card px-8 text-base font-semibold text-[var(--brand)] hover:bg-card/90"
+              className="mt-6 h-12 rounded-full bg-white px-8 text-base font-semibold text-[var(--brand)] hover:bg-white/90"
             >
               Start chatting <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
