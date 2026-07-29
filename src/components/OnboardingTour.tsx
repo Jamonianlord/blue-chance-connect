@@ -71,7 +71,7 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-sm rounded-3xl bg-card p-6 shadow-xl">
         <button
           type="button"
           onClick={close}

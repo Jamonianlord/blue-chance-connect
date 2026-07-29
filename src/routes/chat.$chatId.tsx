@@ -558,7 +558,7 @@ setMessages((cur) => [
 
   return (
     <div className="flex h-[100dvh] flex-col bg-[var(--brand-soft)]/30">
-      <header className="flex items-center justify-between border-b border-border bg-white px-3 py-2 sm:px-6">
+      <header className="flex items-center justify-between border-b border-border bg-card px-3 py-2 sm:px-6">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -665,7 +665,7 @@ setMessages((cur) => [
                   className={
                     "max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm " +
                     (isImage ? "p-1 " : "px-4 py-2 ") +
-                    (mine ? "bg-[var(--brand)] text-white rounded-br-sm" : "bg-white text-foreground border border-border rounded-bl-sm")
+                    (mine ? "bg-[var(--brand)] text-white rounded-br-sm" : "bg-card text-foreground border border-border rounded-bl-sm")
                   }
                 >
                   {isImage ? (
@@ -703,7 +703,7 @@ setMessages((cur) => [
           })}
           {partnerTyping && !ended && (
             <div className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-sm border border-border bg-white px-4 py-2">
+              <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-2">
                 <span className="inline-flex gap-1">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0.1s" }} />
@@ -715,7 +715,7 @@ setMessages((cur) => [
         </div>
       </div>
 
-      <div className="border-t border-border bg-white/90 p-3 backdrop-blur">
+      <div className="border-t border-border bg-card/90 p-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-2">
           {ended ? (
             <div className="flex w-full flex-col items-center gap-2 py-2">
@@ -801,7 +801,7 @@ setMessages((cur) => [
 
       {lightbox && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)}>
-          <button type="button" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white" aria-label="Close">
+          <button type="button" className="absolute right-4 top-4 rounded-full bg-card/10 p-2 text-white" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
           <img src={lightbox} alt="" className="max-h-full max-w-full rounded-lg object-contain" />

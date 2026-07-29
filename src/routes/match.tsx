@@ -243,7 +243,7 @@ function MatchPage() {
       <OnboardingTour />
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-lg flex-col items-center justify-center px-4 py-12">
         {!searching ? (
-          <div className="w-full rounded-3xl border border-border bg-white p-8 shadow-xl">
+          <div className="w-full rounded-3xl border border-border bg-card p-8 shadow-xl">
             <h1 className="text-2xl font-bold">Ready when you are, {profile.name}.</h1>
             <p className="mt-1 text-sm text-muted-foreground">Who would you like to meet?</p>
             <RadioGroup value={lookingFor} onValueChange={(v) => setLookingFor(v as LookingFor)} className="mt-5 grid grid-cols-3 gap-2">
@@ -297,7 +297,7 @@ function MatchPage() {
                   {[0, 1, 2].map((i) => (
                     <span
                       key={i}
-                      className="animate-dot block h-2 w-2 rounded-full bg-white"
+                      className="animate-dot block h-2 w-2 rounded-full bg-card"
                       style={{ animationDelay: `${i * 0.18}s` }}
                     />
                   ))}

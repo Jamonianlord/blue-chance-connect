@@ -61,7 +61,7 @@ function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-md">
         <div className="mb-4 flex justify-center sm:mb-6"><Link to="/"><Logo /></Link></div>
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-xl sm:rounded-3xl sm:p-8">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xl sm:rounded-3xl sm:p-8">
           <h1 className="mb-2 text-xl font-semibold">Forgot your password?</h1>
           <p className="mb-5 text-sm text-muted-foreground">
             Enter the email you signed up with and we'll send you a reset link.
