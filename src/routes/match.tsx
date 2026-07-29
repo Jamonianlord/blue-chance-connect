@@ -260,7 +260,7 @@ function MatchPage() {
             </RadioGroup>
             <Button
               onClick={startSearch}
-              className="brand-gradient brand-glow mt-6 h-12 w-full rounded-full text-base font-semibold text-white hover:opacity-95"
+              className="brand-gradient brand-glow btn-pop mt-6 h-12 w-full rounded-full text-base font-semibold text-white hover:opacity-95"
             >
               Find my match
             </Button>

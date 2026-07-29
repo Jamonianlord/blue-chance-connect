@@ -170,3 +170,21 @@ html.dark, html.dark body { color-scheme: dark; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card-hover-glow:hover { transform: none; }
 }
+
+@keyframes msg-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@utility animate-fade-in { animation: msg-in 0.22s ease-out both; }
+
+/* Primary CTA: lively hover lift + press feedback (pure CSS) */
+@utility btn-pop {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease-out, opacity 0.2s ease-out;
+  &:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 18px 40px -14px color-mix(in oklab, var(--brand) 65%, transparent); }
+  &:active { transform: translateY(0) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in { animation: none !important; }
+  .btn-pop:hover, .btn-pop:active { transform: none; }
+}

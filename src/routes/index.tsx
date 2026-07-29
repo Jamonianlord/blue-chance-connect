@@ -168,7 +168,7 @@ function Landing() {
               <Button
                 size="lg"
                 onClick={start}
-                className="brand-gradient brand-glow h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
+                className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
               >
                 Start chatting <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
