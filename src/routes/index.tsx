@@ -107,7 +107,7 @@ function Landing() {
           />
 
           <div className="relative mx-auto max-w-4xl px-4 pb-16 pt-16 text-center sm:pt-28" ref={heroRef}>
-            <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+            <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
               <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
               Meet a stranger in seconds
             </div>
@@ -115,7 +115,7 @@ function Landing() {
             {/* Decorative icon stickers */}
             <div className="pointer-events-none absolute left-1/2 top-0 -z-10 hidden sm:block" aria-hidden>
               <div
-                className="animate-float-slow flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm"
+                className="animate-float-slow flex h-10 w-10 items-center justify-center rounded-full bg-card/80 shadow-sm"
                 style={{ animationDelay: "-2s", transform: "translateX(170px)" }}
               >
                 <Heart className="h-4 w-4 text-[var(--brand)]" />
@@ -131,7 +131,7 @@ function Landing() {
             </div>
             <div className="pointer-events-none absolute left-1/2 top-16 -z-10 hidden md:block" aria-hidden>
               <div
-                className="animate-float-slow flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm"
+                className="animate-float-slow flex h-8 w-8 items-center justify-center rounded-full bg-card/80 shadow-sm"
                 style={{ animationDelay: "-8s", transform: "translateX(230px)" }}
               >
                 <Zap className="h-3.5 w-3.5 text-[var(--brand)]" />
@@ -168,7 +168,7 @@ function Landing() {
               <Button
                 size="lg"
                 onClick={start}
-                className="brand-gradient brand-glow h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
+                className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
               >
                 Start chatting <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
@@ -193,7 +193,7 @@ function Landing() {
             ].map(({ icon: Icon, step, title, body }) => (
               <li
                 key={step}
-                className="card-hover-glow relative rounded-2xl border border-border bg-white p-6 shadow-sm"
+                className="card-hover-glow relative rounded-2xl border border-border bg-card p-6 shadow-sm"
               >
                 <span className="absolute right-5 top-4 text-4xl font-extrabold text-[var(--brand-soft)]">{step}</span>
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
@@ -214,7 +214,7 @@ function Landing() {
               { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
               { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
             ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-white p-6 shadow-sm">
+              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm">
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
                   <Icon className="h-5 w-5" />
                 </div>

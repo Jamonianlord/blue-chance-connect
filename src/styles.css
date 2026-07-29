@@ -67,6 +67,37 @@
   --ring: oklch(0.58 0.19 255);
 }
 
+.dark {
+  --background: oklch(0.16 0.02 260);
+  --foreground: oklch(0.97 0.005 250);
+  --card: oklch(0.21 0.025 260);
+  --card-foreground: oklch(0.97 0.005 250);
+  --popover: oklch(0.21 0.025 260);
+  --popover-foreground: oklch(0.97 0.005 250);
+
+  --brand: oklch(0.68 0.17 255);
+  --brand-foreground: oklch(0.14 0.03 260);
+  --brand-soft: oklch(0.3 0.06 258);
+  --brand-dark: oklch(0.12 0.03 260);
+
+  --primary: var(--brand);
+  --primary-foreground: oklch(0.14 0.03 260);
+  --secondary: oklch(0.26 0.02 258);
+  --secondary-foreground: oklch(0.96 0.005 250);
+  --muted: oklch(0.26 0.02 258);
+  --muted-foreground: oklch(0.72 0.02 255);
+  --accent: oklch(0.3 0.05 258);
+  --accent-foreground: oklch(0.96 0.005 250);
+  --destructive: oklch(0.58 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.02 258);
+  --input: oklch(0.3 0.02 258);
+  --ring: oklch(0.68 0.17 255);
+}
+
+html, body { color-scheme: light; }
+html.dark, html.dark body { color-scheme: dark; }
+
 @layer base {
   * { border-color: var(--color-border); }
   html, body {
@@ -138,4 +169,22 @@
   .animate-breathe, .animate-ring-out, .animate-dot, .animate-drift, .animate-fade-in-up, .animate-line-reveal, .animate-float-slow, .animate-pulse-soft { animation: none !important; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card-hover-glow:hover { transform: none; }
+}
+
+@keyframes msg-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@utility animate-fade-in { animation: msg-in 0.22s ease-out both; }
+
+/* Primary CTA: lively hover lift + press feedback (pure CSS) */
+@utility btn-pop {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease-out, opacity 0.2s ease-out;
+  &:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 18px 40px -14px color-mix(in oklab, var(--brand) 65%, transparent); }
+  &:active { transform: translateY(0) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in { animation: none !important; }
+  .btn-pop:hover, .btn-pop:active { transform: none; }
 }

@@ -1,6 +1,7 @@
 ﻿import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export function Header() {
                 <Link to="/chats">
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Chats</span>
-{pendingCount > 0 || unreadCount > 0 && (
+                  {pendingCount + unreadCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-bold text-white ring-2 ring-background">
                       {pendingCount + unreadCount > 9 ? "9+" : pendingCount + unreadCount}
                     </span>
@@ -73,6 +74,7 @@ export function Header() {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/profile"><UserIcon className="h-4 w-4" /><span className="hidden sm:inline">Profile</span></Link>
               </Button>
+              <ThemeToggle />
               <Button
                 variant="ghost" size="sm"
                 onClick={async () => { await signOut(); navigate({ to: "/" }); }}
@@ -81,9 +83,12 @@ export function Header() {
               </Button>
             </>
           ) : (
-            <Button asChild size="sm" className="bg-[var(--brand)] hover:bg-[var(--brand)]/90">
-              <Link to="/auth">Sign in</Link>
-            </Button>
+            <>
+              <ThemeToggle />
+              <Button asChild size="sm" className="bg-[var(--brand)] hover:bg-[var(--brand)]/90">
+                <Link to="/auth">Sign in</Link>
+              </Button>
+            </>
           )}
         </nav>
       </div>

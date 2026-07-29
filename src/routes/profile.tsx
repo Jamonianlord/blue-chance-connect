@@ -130,7 +130,7 @@ function ProfilePage() {
         <h1 className="text-3xl font-bold tracking-tight">Your profile</h1>
         <p className="mt-1 text-sm text-muted-foreground">This is how others may see you.</p>
 
-        <div className="mt-6 space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm">
+        <div className="mt-6 space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
           <div className="flex justify-center">
             <div className="relative">
               <Avatar path={avatarPath} name={name || profile?.name} size={112} className="ring-4 ring-[var(--brand-soft)]" />
@@ -196,7 +196,7 @@ function ProfilePage() {
                     className={"rounded-full border px-3 py-1.5 text-xs font-medium transition " +
                       (active
                         ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                        : "border-border bg-white text-foreground hover:bg-muted")}
+                        : "border-border bg-card text-foreground hover:bg-muted")}
                   >
                     {tag}
                   </button>

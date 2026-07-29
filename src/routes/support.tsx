@@ -69,7 +69,7 @@ function SupportPage() {
           </p>
         </div>
 
-        <section className="mt-10 rounded-3xl border border-border bg-white p-2 shadow-sm sm:p-4">
+        <section className="mt-10 rounded-3xl border border-border bg-card p-2 shadow-sm sm:p-4">
           <Accordion type="single" collapsible className="w-full">
             {FAQS.map((f, i) => (
               <AccordionItem key={f.q} value={`item-${i}`} className="px-3">
@@ -83,7 +83,7 @@ function SupportPage() {
         </section>
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
               <Mail className="h-5 w-5" />
             </div>
@@ -99,7 +99,7 @@ function SupportPage() {
             </Button>
           </div>
 
-          <div className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
               <ShieldCheck className="h-5 w-5" />
             </div>

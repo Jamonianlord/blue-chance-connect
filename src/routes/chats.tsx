@@ -198,7 +198,7 @@ function ChatsPage() {
               {requests.map((r) => (
                 <div
                   key={r.friendship_id}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-white p-3"
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
                 >
                   <Avatar path={r.requester_avatar_url} name={r.requester_name ?? "?"} size={40} />
                   <div className="flex-1 text-sm font-medium">{r.requester_name ?? "Someone"}</div>
@@ -279,7 +279,7 @@ function ChatsPage() {
                     </div>
                   </Link>
 
-                  <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-white/95 px-1 opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+                  <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-card/95 px-1 opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">

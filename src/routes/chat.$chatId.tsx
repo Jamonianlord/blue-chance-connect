@@ -558,7 +558,7 @@ setMessages((cur) => [
 
   return (
     <div className="flex h-[100dvh] flex-col bg-[var(--brand-soft)]/30">
-      <header className="flex items-center justify-between border-b border-border bg-white px-3 py-2 sm:px-6">
+      <header className="flex items-center justify-between border-b border-border bg-card px-3 py-2 sm:px-6">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -648,24 +648,31 @@ setMessages((cur) => [
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-6">
-        <div className="mx-auto max-w-2xl space-y-2">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-2xl space-y-3">
           {messages.length === 0 && (
             <div className="mx-auto mt-16 max-w-xs text-center text-sm text-muted-foreground">
               Say hi 👋 — you have one chance to make it a great chat.
             </div>
           )}
-{messages.map((m) => {
+{messages.map((m, i) => {
             const mine = m.sender_id === user!.id;
             const isImage = !!m.image_url;
             const isAudio = !!m.audio_url;
+            const prev = messages[i - 1];
+            const grouped = prev && prev.sender_id === m.sender_id;
             return (
-              <div key={m.id} className={"flex " + (mine ? "justify-end" : "justify-start")}>
+              <div
+                key={m.id}
+                className={"flex animate-fade-in " + (mine ? "justify-end" : "justify-start") + (grouped ? " -mt-1.5" : "")}
+              >
                 <div
                   className={
-                    "max-w-[75%] overflow-hidden rounded-2xl text-sm shadow-sm " +
-                    (isImage ? "p-1 " : "px-4 py-2 ") +
-                    (mine ? "bg-[var(--brand)] text-white rounded-br-sm" : "bg-white text-foreground border border-border rounded-bl-sm")
+                    "max-w-[78%] overflow-hidden text-[15px] leading-relaxed shadow-sm transition-colors " +
+                    (isImage ? "p-1 " : "px-4 py-2.5 ") +
+                    (mine
+                      ? "rounded-3xl rounded-br-md bg-[var(--brand)] text-white"
+                      : "rounded-3xl rounded-bl-md border border-border bg-card text-card-foreground")
                   }
                 >
                   {isImage ? (
@@ -674,7 +681,7 @@ setMessages((cur) => [
                         bucket="chat-images"
                         path={m.image_url}
                         alt="Shared image"
-                        className="block max-h-72 max-w-full cursor-pointer rounded-xl"
+                        className="block max-h-72 max-w-full cursor-pointer rounded-2xl"
                         onClick={async () => {
                           const { data } = await supabase.storage.from("chat-images").createSignedUrl(m.image_url!, 3600);
                           if (data?.signedUrl) setLightbox(data.signedUrl);
@@ -694,7 +701,13 @@ setMessages((cur) => [
                   ) : (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   )}
-                  <div className={"px-2 pb-1 text-[10px] " + (isImage ? "pt-1 " : isAudio ? "pt-1 " : "mt-1 ") + (mine ? "text-white/70" : "text-muted-foreground")}>
+                  <div
+                    className={
+                      "text-[10px] font-normal tabular-nums " +
+                      (isImage || isAudio ? "px-2 pb-1 pt-1 " : "mt-0.5 ") +
+                      (mine ? "text-right text-white/60" : "text-right text-muted-foreground/70")
+                    }
+                  >
                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
                 </div>
@@ -703,7 +716,7 @@ setMessages((cur) => [
           })}
           {partnerTyping && !ended && (
             <div className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-sm border border-border bg-white px-4 py-2">
+              <div className="rounded-3xl rounded-bl-md border border-border bg-card px-4 py-3">
                 <span className="inline-flex gap-1">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0.1s" }} />
@@ -715,8 +728,9 @@ setMessages((cur) => [
         </div>
       </div>
 
-      <div className="border-t border-border bg-white/90 p-3 backdrop-blur">
-        <div className="mx-auto flex max-w-2xl items-center gap-2">
+      <div className="border-t border-border bg-card/85 px-3 py-3 backdrop-blur sm:px-4">
+        <div className="mx-auto flex max-w-2xl items-center gap-1.5 rounded-full border border-border bg-muted/40 px-1.5 py-1.5 transition-colors focus-within:border-[var(--brand)]/50 focus-within:bg-muted/60">
+
           {ended ? (
             <div className="flex w-full flex-col items-center gap-2 py-2">
               {chat.created_at && chat.ended_at && (
@@ -745,13 +759,13 @@ setMessages((cur) => [
                   e.target.value = "";
                 }}
               />
-<Button
+              <Button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
                 size="icon"
                 variant="ghost"
-                className="h-11 w-11 shrink-0 rounded-full text-[var(--brand)] hover:bg-[var(--brand-soft)]"
+                className="h-10 w-10 shrink-0 rounded-full text-[var(--brand)] transition-transform hover:bg-[var(--brand-soft)] active:scale-95"
                 aria-label="Attach image"
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
@@ -762,13 +776,13 @@ setMessages((cur) => [
                 disabled={uploading || ended}
                 size="icon"
                 variant={recording ? "default" : "ghost"}
-                className={`h-11 w-11 shrink-0 rounded-full ${recording ? "bg-[var(--brand)] text-white animate-pulse" : "text-[var(--brand)] hover:bg-[var(--brand-soft)]"}`}
+                className={`h-10 w-10 shrink-0 rounded-full transition-transform active:scale-95 ${recording ? "animate-pulse bg-[var(--brand)] text-white" : "text-[var(--brand)] hover:bg-[var(--brand-soft)]"}`}
                 aria-label={recording ? "Stop recording" : "Record voice message"}
               >
                 {recording ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
               </Button>
               {recording && (
-                <div className="flex items-center gap-1.5 text-xs text-[var(--brand)] font-medium px-2 bg-[var(--brand-soft)] rounded-full">
+                <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-2 py-1 text-xs font-medium text-[var(--brand)]">
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--brand)]" />
                   {recordingTime}s
                 </div>
@@ -783,14 +797,15 @@ setMessages((cur) => [
                   }
                 }}
                 placeholder="Type a message…"
-                className="h-11 flex-1 rounded-full border-border bg-muted/50"
+                className="h-10 flex-1 rounded-full border-0 bg-transparent px-3 text-[15px] shadow-none focus-visible:ring-0"
                 maxLength={2000}
               />
               <Button
                 onClick={send}
                 disabled={sending || !input.trim()}
                 size="icon"
-                className="h-11 w-11 shrink-0 rounded-full bg-[var(--brand)] hover:bg-[var(--brand)]/90"
+                className="h-10 w-10 shrink-0 rounded-full bg-[var(--brand)] transition-all hover:bg-[var(--brand)]/90 hover:scale-105 active:scale-95 disabled:opacity-40"
+                aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -801,7 +816,7 @@ setMessages((cur) => [
 
       {lightbox && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)}>
-          <button type="button" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white" aria-label="Close">
+          <button type="button" className="absolute right-4 top-4 rounded-full bg-card/10 p-2 text-white" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
           <img src={lightbox} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
