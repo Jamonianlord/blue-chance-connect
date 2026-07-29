@@ -716,7 +716,7 @@ setMessages((cur) => [
           })}
           {partnerTyping && !ended && (
             <div className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-2">
+              <div className="rounded-3xl rounded-bl-md border border-border bg-card px-4 py-3">
                 <span className="inline-flex gap-1">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0.1s" }} />
@@ -728,8 +728,9 @@ setMessages((cur) => [
         </div>
       </div>
 
-      <div className="border-t border-border bg-card/90 p-3 backdrop-blur">
-        <div className="mx-auto flex max-w-2xl items-center gap-2">
+      <div className="border-t border-border bg-card/85 px-3 py-3 backdrop-blur sm:px-4">
+        <div className="mx-auto flex max-w-2xl items-center gap-1.5 rounded-full border border-border bg-muted/40 px-1.5 py-1.5 transition-colors focus-within:border-[var(--brand)]/50 focus-within:bg-muted/60">
+
           {ended ? (
             <div className="flex w-full flex-col items-center gap-2 py-2">
               {chat.created_at && chat.ended_at && (
