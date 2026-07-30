@@ -160,30 +160,10 @@ function ProfilePage() {
               />
             </div>
           </div>
-<div>
-             <Label htmlFor="name">Name</Label>
-             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
-           </div>
            <div>
-             <Label htmlFor="bio">Bio</Label>
-             <div className="flex flex-col">
-               <textarea
-                 id="bio"
-                 value={bio}
-                 onChange={(e) => setBio(e.target.value)}
-                 maxLength={200}
-                 className="textarea h-20 resize-none pb-2"
-               ></textarea>
-               <div className="flex justify-between text-xs text-muted-foreground">
-                 <span>{bio.length}</span>
-                 <span>/ 200</span>
-               </div>
-             </div>
+             <Label htmlFor="age">Age</Label>
+             <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />
            </div>
-          <div>
-            <Label htmlFor="age">Age</Label>
-            <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />
-          </div>
           <div>
             <div className="flex items-baseline justify-between">
               <Label htmlFor="bio">Bio</Label>
