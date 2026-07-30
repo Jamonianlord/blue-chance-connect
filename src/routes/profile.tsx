@@ -37,6 +37,7 @@ function ProfilePage() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
+  const [bio, setBio] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -47,15 +48,16 @@ function ProfilePage() {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
 
-  useEffect(() => {
-    if (profile) {
-      setName(profile.name);
-      setAge(String(profile.age));
-      setGender(profile.gender === "other" ? "male" : profile.gender);
-      setAvatarPath(profile.avatar_url ?? null);
-      setInterests(profile.interests ?? []);
-    }
-  }, [profile]);
+useEffect(() => {
+     if (profile) {
+       setName(profile.name);
+       setAge(String(profile.age));
+       setGender(profile.gender === "other" ? "male" : profile.gender);
+       setBio(profile.bio ?? "");
+       setAvatarPath(profile.avatar_url ?? null);
+       setInterests(profile.interests ?? []);
+     }
+   }, [profile]);
 
   const toggleInterest = (tag: string) => {
     setInterests((cur) => {
@@ -94,26 +96,26 @@ function ProfilePage() {
     }
   };
 
-  const save = async () => {
-    if (!user) return;
-    if (!name.trim() || !age || Number(age) < 18) {
-      toast.error("Enter a name and a valid age (18+).");
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id, name: name.trim(), age: Number(age), gender, interests,
-    } as never);
-    setSaving(false);
-    if (error) {
-      console.error("[profile] save error", error);
-      toast.error(error.message);
-      return;
-    }
-    await refreshProfile();
-    toast.success("Profile saved");
-    if (!profile) navigate({ to: "/match" });
-  };
+const save = async () => {
+     if (!user) return;
+     if (!name.trim() || !age || Number(age) < 18) {
+       toast.error("Enter a name and a valid age (18+).");
+       return;
+     }
+     setSaving(true);
+     const { error } = await supabase.from("profiles").upsert({
+       id: user.id, name: name.trim(), age: Number(age), gender, bio, interests,
+     } as never);
+     setSaving(false);
+     if (error) {
+       console.error("[profile] save error", error);
+       toast.error(error.message);
+       return;
+     }
+     await refreshProfile();
+     toast.success("Profile saved");
+     if (!profile) navigate({ to: "/match" });
+   };
 
   if (loading || !user) {
     return (
@@ -156,10 +158,26 @@ function ProfilePage() {
               />
             </div>
           </div>
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
-          </div>
+<div>
+             <Label htmlFor="name">Name</Label>
+             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
+           </div>
+           <div>
+             <Label htmlFor="bio">Bio</Label>
+             <div className="flex flex-col">
+               <textarea
+                 id="bio"
+                 value={bio}
+                 onChange={(e) => setBio(e.target.value)}
+                 maxLength={200}
+                 className="textarea h-20 resize-none pb-2"
+               ></textarea>
+               <div className="flex justify-between text-xs text-muted-foreground">
+                 <span>{bio.length}</span>
+                 <span>/ 200</span>
+               </div>
+             </div>
+           </div>
           <div>
             <Label htmlFor="age">Age</Label>
             <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />

@@ -29,6 +29,7 @@ const signupSchema = z.object({
   gender: z.enum(["male", "female"]),
   email: z.string().trim().email().max(255),
   password: z.string().min(6, "Min 6 characters").max(72),
+  terms_accepted: z.boolean().refine(val => val === true, { message: "You must accept the Terms & Conditions and Privacy Policy" }),
 });
 
 function AuthPage() {
@@ -42,15 +43,16 @@ function AuthPage() {
   const [gender, setGender] = useState<"male" | "female">("male");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        const parsed = signupSchema.safeParse({
-          name, age: Number(age), gender, email, password,
-        });
+const parsed = signupSchema.safeParse({
+           name, age: Number(age), gender, email, password, terms_accepted: termsAccepted,
+         });
         if (!parsed.success) {
           toast.error(parsed.error.issues[0].message);
           return;
@@ -84,8 +86,9 @@ function AuthPage() {
           setMode("signin");
           return;
         }
+        const termsAcceptedAt = termsAccepted ? new Date().toISOString() : null;
         const { error: pErr } = await supabase.from("profiles").upsert({
-          id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender, interests: [],
+          id: uid, name: parsed.data.name, age: parsed.data.age, gender: parsed.data.gender, interests: [], terms_accepted_at: termsAcceptedAt,
         } as never);
         if (pErr) {
           console.error("[signup] profile upsert error", pErr);
@@ -176,6 +179,28 @@ function AuthPage() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
+            {mode === "signup" && (
+              <div>
+                <input
+                  type="checkbox"
+                  id="terms-checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="h-4 w-4 text-[var(--brand)] focus:ring-[var(--brand)] border-gray-300 rounded"
+                />
+                <label htmlFor="terms-checkbox" className="text-sm text-muted-foreground leading-none">
+                  I agree to the{" "}
+                  <Link to="/terms" className="text-[var(--font-default)] underline hover:no-underline">
+                    Terms & Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" className="text-[var(--font-default)] underline hover:no-underline">
+                    Privacy Policy
+                  </Link>
+                  .
+                </label>
+              </div>
+            )}
             <div>
               <div className="flex items-baseline justify-between">
                 <Label htmlFor="password">Password</Label>
@@ -189,7 +214,7 @@ function AuthPage() {
             </div>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || (mode === "signup" && !termsAccepted)}
               className="brand-gradient h-11 w-full rounded-full text-base font-semibold text-white hover:opacity-95"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account & start chatting" : "Sign in"}

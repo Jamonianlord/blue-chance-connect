@@ -141,36 +141,42 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          age: number
-          avatar_url: string | null
-          created_at: string
-          gender: Database["public"]["Enums"]["gender_type"]
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          age: number
-          avatar_url?: string | null
-          created_at?: string
-          gender: Database["public"]["Enums"]["gender_type"]
-          id: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          age?: number
-          avatar_url?: string | null
-          created_at?: string
-          gender?: Database["public"]["Enums"]["gender_type"]
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+profiles: {
+         Row: {
+           age: number
+           avatar_url: string | null
+           bio: string | null
+           created_at: string
+           gender: Database["public"]["Enums"]["gender_type"]
+           id: string
+           name: string
+           terms_accepted_at: string | null
+           updated_at: string
+         }
+         Insert: {
+           age: number
+           avatar_url?: string | null
+           bio?: string | null
+           created_at?: string
+           gender: Database["public"]["Enums"]["gender_type"]
+           id: string
+           name: string
+           terms_accepted_at?: string | null
+           updated_at?: string
+         }
+         Update: {
+           age?: number
+           avatar_url?: string | null
+           bio?: string | null
+           created_at?: string
+           gender?: Database["public"]["Enums"]["gender_type"]
+           id?: string
+           name?: string
+           terms_accepted_at?: string | null
+           updated_at?: string
+         }
+         Relationships: []
+       }
       reports: {
         Row: {
           chat_id: string | null

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+﻿import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { usePresenceHeartbeat } from "@/lib/usePresenceHeartbeat";
@@ -10,6 +10,7 @@ export type Profile = {
   gender: "male" | "female" | "other";
   avatar_url: string | null;
   interests: string[];
+  bio: string | null;
 };
 
 type Ctx = {
@@ -92,3 +93,4 @@ export function useAuth() {
   if (!c) throw new Error("useAuth must be used within AuthProvider");
   return c;
 }
+
