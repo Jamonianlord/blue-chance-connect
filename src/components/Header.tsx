@@ -63,7 +63,7 @@ export function Header() {
               <Button asChild variant="ghost" size="sm" className="relative">
                 <Link to="/chats">
                   <MessageCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Chats</span>
+                  <span className="hidden sm:inline">Friends</span>
                   {pendingCount + unreadCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-bold text-white ring-2 ring-background">
                       {pendingCount + unreadCount > 9 ? "9+" : pendingCount + unreadCount}

@@ -18,12 +18,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2, Check, X, Ban, UserMinus, MessageCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/chats")({
   component: ChatsPage,
   head: () => ({
     meta: [
-      { title: "Chats — 1Chance" },
+      { title: "Friends — 1Chance" },
       { name: "description", content: "Your friends on 1Chance." },
       { name: "robots", content: "noindex" },
     ],
@@ -187,7 +188,7 @@ function ChatsPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="mx-auto max-w-lg px-4 py-8">
-        <h1 className="mb-4 text-xl font-bold">Chats</h1>
+         <h1 className="mb-4 text-xl font-bold">Friends</h1>
 
         {requests.length > 0 && (
           <div className="mb-6">
@@ -280,55 +281,65 @@ function ChatsPage() {
                   </Link>
 
                   <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-card/95 px-1 opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
-                          <UserMinus className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove friend?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            You'll no longer be able to chat with {f.friend_name ?? "this person"} here.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => unfriend(f.friendship_id)}
-                            className="bg-destructive text-destructive-foreground"
-                          >
-                            Remove
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove friend?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                You'll no longer be able to chat with {f.friend_name ?? "this person"} here.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => unfriend(f.friendship_id)}
+                                className="bg-destructive text-destructive-foreground"
+                              >
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">Unfriend</TooltipContent>
+                    </Tooltip>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
-                          <Ban className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Block {f.friend_name ?? "this person"}?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            They'll be removed as a friend and won't be matched with you again.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => blockFriend(f.friendship_id, f.friend_id)}
-                            className="bg-destructive text-destructive-foreground"
-                          >
-                            Block
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Block {f.friend_name ?? "this person"}?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                They'll be removed as a friend and won't be matched with you again.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => blockFriend(f.friendship_id, f.friend_id)}
+                                className="bg-destructive text-destructive-foreground"
+                              >
+                                Block
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">Block</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               );
