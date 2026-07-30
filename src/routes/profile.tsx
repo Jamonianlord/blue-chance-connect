@@ -165,6 +165,20 @@ function ProfilePage() {
             <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />
           </div>
           <div>
+            <div className="flex items-baseline justify-between">
+              <Label htmlFor="bio">Bio</Label>
+              <span className="text-xs text-muted-foreground">{bio.length}/{MAX_BIO}</span>
+            </div>
+            <Textarea
+              id="bio"
+              value={bio}
+              maxLength={MAX_BIO}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Say something about yourself…"
+              className="mt-2 min-h-[96px] resize-none rounded-xl border-2 border-border/80 focus-visible:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand-soft)]"
+            />
+          </div>
+          <div>
             <Label>Gender</Label>
             <RadioGroup value={gender} onValueChange={(v) => setGender(v as typeof gender)} className="mt-2 grid grid-cols-2 gap-2">
               {(["male", "female"] as const).map(g => (
