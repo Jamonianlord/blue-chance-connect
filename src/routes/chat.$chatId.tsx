@@ -240,14 +240,11 @@ const fetchChatAndMessages = async () => {
       if (!cancelled) await (supabase as any).rpc("mark_chat_read", { _chat_id: chatId });
       
       // Fetch shared interests
-      if (!cancelled && user && pId) {
-        const [userProfile, partnerProfile] = await Promise.all([
-          supabase.from("profiles").select("interests").eq("id", user.id).single(),
-          supabase.from("profiles").select("interests").eq("id", pId).single(),
-        ]);
-        if (!cancelled && userProfile.data && partnerProfile.data) {
-          const userInterests = userProfile.data.interests || [];
-          const partnerInterests = partnerProfile.data.interests || [];
+      if (!cancelled && user && pId && partner) {
+        const { data: userProfile } = await supabase.from("profiles").select("interests").eq("id", user.id).single();
+        if (userProfile && !cancelled) {
+          const userInterests = (userProfile as any).interests || [];
+          const partnerInterests = partner.interests || [];
           const shared = userInterests.filter((interest: string) => partnerInterests.includes(interest));
           setSharedInterests(shared);
         }
@@ -527,19 +524,17 @@ setMessages((cur) => [
   const addFriend = async () => {
     if (!user || !partnerId || friendBusy) return;
     setFriendBusy(true);
-    const { data, error } = await supabase
-      .from("friendships")
-      .insert({ requester_id: user.id, addressee_id: partnerId })
-      .select()
-      .single();
+    const { data, error } = await (supabase as any).rpc("send_friend_request", { p_addressee_id: partnerId });
     setFriendBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    setFriendshipId(data.id);
-    setFriendshipStatus("pending_sent");
-    toast.success("Friend request sent.");
+    if (data && data[0]) {
+      setFriendshipId(data[0].id);
+      setFriendshipStatus("pending_sent");
+      toast.success("Friend request sent.");
+    }
   };
 
   const acceptFriendFromChat = async () => {
