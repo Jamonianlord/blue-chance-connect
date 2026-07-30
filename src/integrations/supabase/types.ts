@@ -145,28 +145,37 @@ export type Database = {
         Row: {
           age: number
           avatar_url: string | null
+          bio: string | null
           created_at: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          interests: string[]
           name: string
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
           age: number
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          interests?: string[]
           name: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
           age?: number
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
+          interests?: string[]
           name?: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: []
