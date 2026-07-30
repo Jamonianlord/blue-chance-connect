@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Avatar } from "@/components/SignedImage";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ const INTEREST_OPTIONS = [
   "Dancing", "Cooking", "Nature", "Pets", "Cars", "Business",
 ];
 const MAX_INTERESTS = 5;
+const MAX_BIO = 200;
 
 function ProfilePage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
@@ -48,16 +50,16 @@ function ProfilePage() {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
 
-useEffect(() => {
-     if (profile) {
-       setName(profile.name);
-       setAge(String(profile.age));
-       setGender(profile.gender === "other" ? "male" : profile.gender);
-       setBio(profile.bio ?? "");
-       setAvatarPath(profile.avatar_url ?? null);
-       setInterests(profile.interests ?? []);
-     }
-   }, [profile]);
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name);
+      setAge(String(profile.age));
+      setGender(profile.gender === "other" ? "male" : profile.gender);
+      setBio(profile.bio ?? "");
+      setAvatarPath(profile.avatar_url ?? null);
+      setInterests(profile.interests ?? []);
+    }
+  }, [profile]);
 
   const toggleInterest = (tag: string) => {
     setInterests((cur) => {
@@ -96,26 +98,26 @@ useEffect(() => {
     }
   };
 
-const save = async () => {
-     if (!user) return;
-     if (!name.trim() || !age || Number(age) < 18) {
-       toast.error("Enter a name and a valid age (18+).");
-       return;
-     }
-     setSaving(true);
-     const { error } = await supabase.from("profiles").upsert({
-       id: user.id, name: name.trim(), age: Number(age), gender, bio, interests,
-     } as never);
-     setSaving(false);
-     if (error) {
-       console.error("[profile] save error", error);
-       toast.error(error.message);
-       return;
-     }
-     await refreshProfile();
-     toast.success("Profile saved");
-     if (!profile) navigate({ to: "/match" });
-   };
+  const save = async () => {
+    if (!user) return;
+    if (!name.trim() || !age || Number(age) < 18) {
+      toast.error("Enter a name and a valid age (18+).");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id, name: name.trim(), age: Number(age), gender, bio, interests,
+    } as never);
+    setSaving(false);
+    if (error) {
+      console.error("[profile] save error", error);
+      toast.error(error.message);
+      return;
+    }
+    await refreshProfile();
+    toast.success("Profile saved");
+    if (!profile) navigate({ to: "/match" });
+  };
 
   if (loading || !user) {
     return (
@@ -181,6 +183,20 @@ const save = async () => {
           <div>
             <Label htmlFor="age">Age</Label>
             <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <Label htmlFor="bio">Bio</Label>
+              <span className="text-xs text-muted-foreground">{bio.length}/{MAX_BIO}</span>
+            </div>
+            <Textarea
+              id="bio"
+              value={bio}
+              maxLength={MAX_BIO}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Say something about yourself…"
+              className="mt-2 min-h-[96px] resize-none rounded-xl border-2 border-border/80 focus-visible:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand-soft)]"
+            />
           </div>
           <div>
             <Label>Gender</Label>
