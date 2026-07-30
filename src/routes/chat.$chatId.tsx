@@ -164,9 +164,10 @@ function ChatPage() {
   const [reportReason, setReportReason] = useState("");
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
-const [friendBusy, setFriendBusy] = useState(false);
+  const [friendBusy, setFriendBusy] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [sharedInterests, setSharedInterests] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -233,6 +234,20 @@ const fetchChatAndMessages = async () => {
       
       // Mark chat as read when it loads
       if (!cancelled) await (supabase as any).rpc("mark_chat_read", { _chat_id: chatId });
+      
+      // Fetch shared interests
+      if (!cancelled && user && pId) {
+        const [userProfile, partnerProfile] = await Promise.all([
+          supabase.from("profiles").select("interests").eq("id", user.id).single(),
+          supabase.from("profiles").select("interests").eq("id", pId).single(),
+        ]);
+        if (!cancelled && userProfile.data && partnerProfile.data) {
+          const userInterests = userProfile.data.interests || [];
+          const partnerInterests = partnerProfile.data.interests || [];
+          const shared = userInterests.filter((interest: string) => partnerInterests.includes(interest));
+          setSharedInterests(shared);
+        }
+      }
     };
 
     fetchChatAndMessages();
@@ -647,6 +662,25 @@ setMessages((cur) => [
           )}
         </div>
       </header>
+
+      {sharedInterests.length > 0 && (
+        <div className="mx-auto max-w-2xl w-full px-4 sm:px-6 mb-4">
+          <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm">
+            <span className="text-muted-foreground">You're both into </span>
+            <span className="font-medium text-foreground">
+              {sharedInterests.slice(0, -1).join(', ')}{sharedInterests.length > 1 ? ' and ' : ''}{sharedInterests[sharedInterests.length - 1]}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {sharedInterests.length === 0 && (
+        <div className="mx-auto max-w-2xl w-full px-4 sm:px-6 mb-4">
+          <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm text-muted-foreground text-center">
+            Say hi and find out what you have in common!
+          </div>
+        </div>
+      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
         <div className="mx-auto max-w-2xl space-y-3">
