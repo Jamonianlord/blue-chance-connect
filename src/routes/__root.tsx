@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 
 import appCss from "../styles.css?url";
@@ -138,7 +139,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Outlet />
+          <TooltipProvider>
+            <Outlet />
+          </TooltipProvider>
           <Toaster richColors position="top-center" />
         </AuthProvider>
       </ThemeProvider>
