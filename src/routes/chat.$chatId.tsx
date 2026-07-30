@@ -663,7 +663,7 @@ setMessages((cur) => [
         </div>
       </header>
 
-      {sharedInterests.length > 0 && (
+      {messages.length === 0 && sharedInterests.length > 0 && (
         <div className="mx-auto max-w-2xl w-full px-4 sm:px-6 mb-4">
           <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm">
             <span className="text-muted-foreground">You're both into </span>
@@ -674,7 +674,7 @@ setMessages((cur) => [
         </div>
       )}
 
-      {sharedInterests.length === 0 && (
+      {messages.length === 0 && sharedInterests.length === 0 && (
         <div className="mx-auto max-w-2xl w-full px-4 sm:px-6 mb-4">
           <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm text-muted-foreground text-center">
             Say hi and find out what you have in common!
