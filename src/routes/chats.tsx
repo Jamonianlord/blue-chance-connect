@@ -110,7 +110,17 @@ function ChatsPage() {
       if (document.visibilityState === "visible") load();
     };
     window.addEventListener("visibilitychange", handleVisibility);
-    return () => window.removeEventListener("visibilitychange", handleVisibility);
+
+    const channel = (supabase as any)
+      .channel(`chats-page:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => load())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
+      .subscribe();
+
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibility);
+      supabase.removeChannel(channel);
+    };
   }, [user, load]);
 
   const acceptRequest = async (friendshipId: string) => {

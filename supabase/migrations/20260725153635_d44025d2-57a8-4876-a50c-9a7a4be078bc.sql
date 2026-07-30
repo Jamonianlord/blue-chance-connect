@@ -11,10 +11,10 @@ END $$;
 
 DROP FUNCTION IF EXISTS public.get_chat_partner(uuid);
 CREATE OR REPLACE FUNCTION public.get_chat_partner(_chat_id uuid)
- RETURNS TABLE(id uuid, name text, avatar_url text)
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ RETURNS TABLE(id uuid, name text, avatar_url text, last_seen timestamptz)
+  LANGUAGE plpgsql
+  STABLE SECURITY DEFINER
+  SET search_path TO 'public'
 AS $function$
 DECLARE
   _me uuid := auth.uid();
@@ -27,7 +27,7 @@ BEGIN
     INTO _partner
     FROM public.chats c WHERE c.id = _chat_id;
   IF _partner IS NULL THEN RETURN; END IF;
-  RETURN QUERY SELECT p.id, p.name, p.avatar_url FROM public.profiles p WHERE p.id = _partner;
+  RETURN QUERY SELECT p.id, p.name, p.avatar_url, p.last_seen FROM public.profiles p WHERE p.id = _partner;
 END;
 $function$;
 

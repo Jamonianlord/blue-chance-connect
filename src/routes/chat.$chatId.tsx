@@ -168,6 +168,8 @@ function ChatPage() {
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [sharedInterests, setSharedInterests] = useState<string[]>([]);
+  const [partnerLastSeen, setPartnerLastSeen] = useState<string | null>(null);
+  const partnerOnline = partnerLastSeen ? new Date(partnerLastSeen).getTime() >= Date.now() - 90_000 : false;
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -176,6 +178,7 @@ function ChatPage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingStartRef = useRef<number>(0);
+  const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -222,6 +225,7 @@ const fetchChatAndMessages = async () => {
       if (!cancelled && partner) {
         if (partner.name) setPartnerName(partner.name);
         setPartnerAvatar(partner.avatar_url ?? null);
+        setPartnerLastSeen(partner.last_seen ?? null);
       }
 
       const cRow = c as ChatRow;
@@ -327,9 +331,19 @@ const fetchChatAndMessages = async () => {
       cancelled = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       if (channelRef.current) supabase.removeChannel(channelRef.current);
+      if (presenceTimerRef.current) clearInterval(presenceTimerRef.current);
       window.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [chatId, user, navigate]);
+
+  useEffect(() => {
+    if (!partnerId) return;
+    const id = setInterval(async () => {
+      const { data } = await supabase.from("profiles").select("last_seen").eq("id", partnerId).single();
+      if (data) setPartnerLastSeen((data as any).last_seen ?? null);
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [partnerId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -578,7 +592,7 @@ setMessages((cur) => [
           <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Avatar path={partnerAvatar} name={partnerName} size={36} />
+          <Avatar path={partnerAvatar} name={partnerName} size={36} online={partnerOnline && !ended} />
           <div>
             <div className="text-sm font-semibold leading-tight">{partnerName}</div>
             <div className="text-xs text-muted-foreground">

@@ -261,6 +261,7 @@ export type Database = {
         Returns: {
           avatar_url: string
           id: string
+          last_seen: string
           name: string
         }[]
       }

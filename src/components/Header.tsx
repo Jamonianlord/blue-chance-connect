@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from "@tanstack/react-router";
+﻿import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -6,22 +6,42 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut, User as UserIcon, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const currentChatId = pathname.startsWith("/chat/") ? pathname.replace("/chat/", "") : null;
 
   useEffect(() => {
     if (!user) { 
       setPendingCount(0); 
       setUnreadCount(0); 
+      document.title = "1Chance — Meet someone new, right now";
       return; 
     }
+
+    const updateTitle = () => {
+      if (document.hidden && unreadCount > 0) {
+        document.title = `(${unreadCount}) 1Chance`;
+      } else {
+        document.title = "1Chance — Meet someone new, right now";
+      }
+    };
+
+    updateTitle();
+    document.addEventListener("visibilitychange", updateTitle);
+    return () => document.removeEventListener("visibilitychange", updateTitle);
+  }, [user, unreadCount]);
+
+  useEffect(() => {
+    if (!user) return;
     let cancelled = false;
     const load = async () => {
-      // Load pending friend requests count
       const { count } = await (supabase as any)
         .from("friendships")
         .select("id", { count: "exact", head: true })
@@ -29,14 +49,12 @@ export function Header() {
         .eq("status", "pending");
       if (!cancelled) setPendingCount(count ?? 0);
       
-      // Load total unread count
       const { count: unreadCountResult, error } = await (supabase as any)
         .rpc("get_total_unread_count");
       if (!error && !cancelled) setUnreadCount(unreadCountResult ?? 0);
     };
     load();
     
-    // Set up realtime subscriptions for both
     const channel = (supabase as any)
       .channel(`header:${user.id}`)
       .on("postgres_changes",
@@ -44,14 +62,38 @@ export function Header() {
         () => load())
       .on("postgres_changes",
         { event: "*", schema: "public", table: "messages", filter: "read_at=is.null" },
-        () => load()) // This will trigger when any unread messages change
+        () => load())
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        async (payload: any) => {
+          const msg = payload.new as any;
+          if (msg.sender_id === user.id) return;
+          if (currentChatId && msg.chat_id === currentChatId) return;
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("id", msg.sender_id)
+            .maybeSingle();
+          const senderName = (profile as any)?.name ?? "Someone";
+          const preview = msg.content?.slice(0, 60) ?? "";
+          toast.info(`${senderName}: ${preview}`, {
+            description: preview ? "" : "New message",
+            action: {
+              label: "View",
+              onClick: (event) => {
+                event.stopPropagation();
+                navigate({ to: `/chat/$chatId`, params: { chatId: msg.chat_id } });
+              }
+            }
+          });
+        })
       .subscribe();
     
     return () => { 
       cancelled = true; 
       supabase.removeChannel(channel); 
     };
-  }, [user]);
+  }, [user, currentChatId, navigate]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
