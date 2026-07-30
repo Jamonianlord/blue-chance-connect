@@ -10,6 +10,7 @@ export type Profile = {
   gender: "male" | "female" | "other";
   avatar_url: string | null;
   interests: string[];
+  bio: string | null;
 };
 
 type Ctx = {

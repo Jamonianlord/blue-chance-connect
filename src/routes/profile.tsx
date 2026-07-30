@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Avatar } from "@/components/SignedImage";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ const INTEREST_OPTIONS = [
   "Dancing", "Cooking", "Nature", "Pets", "Cars", "Business",
 ];
 const MAX_INTERESTS = 5;
+const MAX_BIO = 200;
 
 function ProfilePage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
@@ -38,6 +40,7 @@ function ProfilePage() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
   const [interests, setInterests] = useState<string[]>([]);
+  const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
@@ -54,6 +57,7 @@ function ProfilePage() {
       setGender(profile.gender === "other" ? "male" : profile.gender);
       setAvatarPath(profile.avatar_url ?? null);
       setInterests(profile.interests ?? []);
+      setBio(profile.bio ?? "");
     }
   }, [profile]);
 
@@ -102,7 +106,7 @@ function ProfilePage() {
     }
     setSaving(true);
     const { error } = await supabase.from("profiles").upsert({
-      id: user.id, name: name.trim(), age: Number(age), gender, interests,
+      id: user.id, name: name.trim(), age: Number(age), gender, interests, bio: bio.trim() || null,
     } as never);
     setSaving(false);
     if (error) {
