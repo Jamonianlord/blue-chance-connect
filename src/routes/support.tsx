@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -65,12 +64,12 @@ function SupportPage() {
               <Mail className="h-5 w-5" />
             </div>
             <h2 className="text-lg font-semibold">Email us at</h2>
-            <Button
-              asChild
-              className="brand-gradient mt-4 h-11 rounded-full text-base font-semibold text-white hover:opacity-95"
+            <a
+              href="mailto:cheapbrosgang@gmail.com"
+              className="brand-gradient mt-4 inline-flex h-11 items-center justify-center rounded-full text-base font-semibold text-white hover:opacity-95"
             >
-              <a href="mailto:cheapbrosgang@gmail.com">cheapbrosgang@gmail.com</a>
-            </Button>
+              cheapbrosgang@gmail.com
+            </a>
             <p className="mt-3 text-sm text-muted-foreground">
               We typically respond within 24-48 hours.
             </p>
