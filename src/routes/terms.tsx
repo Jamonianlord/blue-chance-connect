@@ -87,7 +87,7 @@ function TermsPage() {
           <hr />
           <h2>11. Governing Law and Dispute Resolution</h2>
           <p>11.1 These Terms are governed by and construed in accordance with the laws of the <strong>Federal Republic of Nigeria</strong>, without regard to conflict-of-law principles.</p>
-          <p>11.2 Any dispute arising out of or relating to these Terms or the Service shall first be attempted to be resolved informally by contacting us at <strong>support@1chance.online</strong>.</p>
+          <p>11.2 Any dispute arising out of or relating to these Terms or the Service shall first be attempted to be resolved informally by contacting us at <strong>cheapbrosgang@gmail.com</strong>.</p>
           <p>11.3 If a dispute cannot be resolved informally, you agree that it shall be submitted to binding arbitration (or the courts of Lagos, Nigeria, if arbitration is not adopted) and that you waive any right to participate in a class action or class-wide arbitration.</p>
           <hr />
           <h2>12. Changes to These Terms</h2>
@@ -98,7 +98,7 @@ function TermsPage() {
           <p>13.2 <strong>Severability.</strong> If any provision of these Terms is found unenforceable, the remaining provisions will remain in full force and effect.</p>
           <p>13.3 <strong>No Waiver.</strong> Our failure to enforce any right or provision of these Terms shall not be deemed a waiver of such right or provision.</p>
           <p>13.4 <strong>Assignment.</strong> You may not assign or transfer these Terms without our prior written consent. We may assign these Terms without restriction.</p>
-          <p>13.5 <strong>Contact.</strong> Questions about these Terms should be sent to <strong>support@1chance.online</strong>.</p>
+          <p>13.5 <strong>Contact.</strong> Questions about these Terms should be sent to <strong>cheapbrosgang@gmail.com</strong>.</p>
           <hr />
           <p><em>By tapping "I agree," creating an account, or otherwise using 1Chance, you confirm that you have read, understood, and agree to be bound by these Terms and Conditions.</em></p>
         </div>

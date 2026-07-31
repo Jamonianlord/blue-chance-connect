@@ -62,7 +62,7 @@ export function SafetyPage() {
             See something that shouldn't be here?
           </p>
           <a
-            href="mailto:support@1chance.online"
+            href="mailto:cheapbrosgang@gmail.com"
             className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-6 py-3 text-base font-semibold text-white hover:opacity-95"
           >
             Report a concern

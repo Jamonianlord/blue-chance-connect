@@ -26,11 +26,9 @@ export function Footer() {
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</h4>
             <ul className="mt-3 space-y-2 text-sm">
+              <li><Link to="/support" className="text-muted-foreground hover:text-foreground">Support</Link></li>
               <li>
-                <a href="mailto:support@1chance.online" className="text-muted-foreground hover:text-foreground">Support</a>
-              </li>
-              <li>
-                <a href="mailto:support@1chance.online" className="text-muted-foreground hover:text-foreground">Contact</a>
+                <a href="mailto:cheapbrosgang@gmail.com" className="text-muted-foreground hover:text-foreground">Contact</a>
               </li>
             </ul>
           </div>

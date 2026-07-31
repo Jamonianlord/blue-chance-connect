@@ -79,7 +79,7 @@ function PrivacyPage() {
             <li>Request deletion of your account and associated personal information, subject to our right to retain limited records as described in Section 5.2 and our Terms and Conditions;</li>
             <li>Withdraw consent to processing, which may result in suspension or termination of your ability to use the Service.</li>
           </ul>
-          <p>To exercise these rights, contact us at <strong>support@1chance.online</strong>. We may take reasonable steps to verify your identity before acting on a request.</p>
+          <p>To exercise these rights, contact us at <strong>cheapbrosgang@gmail.com</strong>. We may take reasonable steps to verify your identity before acting on a request.</p>
           <hr />
           <h2>8. Children''s Privacy</h2>
           <p>1Chance is not directed at, and may not be used by, anyone under 18 years old. We do not knowingly collect information from anyone under 18. If we learn that we have collected information from a user under 18, we will delete the account and associated data.</p>
@@ -94,7 +94,7 @@ function PrivacyPage() {
           <p>We may update this Privacy Policy from time to time at our sole discretion. We will update the "Last updated" date above. Continued use of the Service after changes are posted constitutes acceptance of the revised Policy.</p>
           <hr />
           <h2>12. Contact Us</h2>
-          <p>Questions about this Privacy Policy or requests regarding your data should be sent to <strong>support@1chance.online</strong>.</p>
+          <p>Questions about this Privacy Policy or requests regarding your data should be sent to <strong>cheapbrosgang@gmail.com</strong>.</p>
           <hr />
           <p><em>By using 1Chance, you acknowledge that you have read and understood this Privacy Policy.</em></p>
         </div>
