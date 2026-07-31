@@ -12,6 +12,7 @@ import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Footer } from "@/components/Footer";
 
 
 import appCss from "../styles.css?url";
@@ -141,6 +142,7 @@ function RootComponent() {
         <AuthProvider>
           <TooltipProvider>
             <Outlet />
+            <Footer />
           </TooltipProvider>
           <Toaster richColors position="top-center" />
         </AuthProvider>

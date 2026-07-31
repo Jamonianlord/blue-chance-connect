@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
 import { ArrowRight, Heart, MessageCircle, ShieldCheck, Shuffle, Sparkles, Star, UserPlus, Zap } from "lucide-react";
 import { useEffect, useRef, type RefObject } from "react";
@@ -225,6 +226,27 @@ function Landing() {
           </div>
         </section>
 
+        {/* Safety first */}
+        <section className="mx-auto max-w-5xl px-4 py-16 reveal">
+          <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">Safety first</h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">We built 1Chance to feel like a real conversation — not a social media profile.</p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {[
+              { icon: ShieldCheck, title: "Report & Block anytime", body: "See something you don't like? Block or report in one tap." },
+              { icon: MessageCircle, title: "Anonymous by default", body: "No public profile, no feed, no history. Just this chat." },
+              { icon: Zap, title: "You're in control", body: "End the chat whenever you want. No questions asked." },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm text-center">
+                <div className="mx-auto mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* CTA band */}
         <section className="mx-auto max-w-5xl px-4 pb-20 reveal" ref={ctaRef}>
           <div className="brand-gradient brand-glow relative overflow-hidden rounded-3xl px-6 py-12 text-center text-white">
@@ -249,13 +271,7 @@ function Landing() {
           </div>
         </section>
 
-        <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-          <div className="mb-3 flex justify-center gap-5">
-            <Link to="/support" className="story-link hover:text-foreground">Support &amp; FAQ</Link>
-            <Link to="/auth" className="story-link hover:text-foreground">Sign in</Link>
-          </div>
-          © {new Date().getFullYear()} 1Chance. Be kind.
-        </footer>
+        <Footer />
       </main>
     </div>
   );
