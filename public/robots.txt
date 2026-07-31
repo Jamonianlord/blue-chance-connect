@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://1chance.fun/sitemap.xml

@@ -102,7 +102,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "1Chance — Meet someone new, right now" },
       { property: "og:description", content: "One click, one match, one chance. Modern random chat." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://1chance.fun/" },
+      { property: "og:image", content: "https://1chance.fun/og-image.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://1chance.fun/og-image.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -110,6 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "canonical", href: "https://1chance.fun/" },
     ],
   }),
   shellComponent: RootShell,

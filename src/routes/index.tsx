@@ -15,7 +15,6 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "1Chance — Meet someone new, right now" },
       { property: "og:description", content: "Random 1-on-1 chat with people online right now." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
