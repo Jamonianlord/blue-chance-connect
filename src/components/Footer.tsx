@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Send } from "lucide-react";
+import { Mail, Send } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const socials = [
   { name: "Telegram", href: "https://t.me/onechanceweb", icon: Send },
@@ -7,24 +8,44 @@ const socials = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border py-8">
+    <footer className="border-t border-border py-10">
       <div className="mx-auto max-w-5xl px-4">
-        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex flex-wrap justify-center gap-5 text-sm">
-            <Link to="/terms" className="text-muted-foreground hover:text-foreground">Terms</Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</Link>
-            <a href="mailto:support@1chance.online" className="text-muted-foreground hover:text-foreground">support@1chance.online</a>
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          <div className="col-span-2 sm:col-span-1">
+            <Logo />
+            <p className="mt-3 text-xs text-muted-foreground">© 2026 1Chance</p>
           </div>
-          <div className="flex items-center gap-4">
-            {socials.map((social) => (
-              <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                <social.icon className="h-4 w-4" />
-              </a>
-            ))}
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legal</h4>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li><Link to="/terms" className="text-muted-foreground hover:text-foreground">Terms</Link></li>
+              <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
+            </ul>
           </div>
-        </div>
-        <div className="mt-4 text-center text-xs text-muted-foreground">
-          © 2026 1Chance
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</h4>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <a href="mailto:support@1chance.online" className="text-muted-foreground hover:text-foreground">Support</a>
+              </li>
+              <li>
+                <a href="mailto:support@1chance.online" className="text-muted-foreground hover:text-foreground">Contact</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Socials</h4>
+            <ul className="mt-3 space-y-2 text-sm">
+              {socials.map((social) => (
+                <li key={social.name}>
+                  <a href={social.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                    <social.icon className="h-4 w-4" />
+                    {social.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </footer>

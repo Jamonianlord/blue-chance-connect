@@ -270,8 +270,6 @@ function Landing() {
             </Button>
           </div>
         </section>
-
-        <Footer />
       </main>
     </div>
   );
