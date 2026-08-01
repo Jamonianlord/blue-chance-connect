@@ -574,8 +574,26 @@ setMessages((cur) => [
 
   if (authLoading || !chat) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+      <div className="flex h-[100dvh] flex-col bg-[var(--brand-soft)]/30">
+        <header className="flex items-center gap-3 border-b border-border bg-card px-3 py-2 sm:px-6">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-28" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <Skeleton className="h-8 w-20 rounded-full" />
+        </header>
+        <div className="flex-1 space-y-3 overflow-hidden px-3 py-4 sm:px-6">
+          {[64, 40, 72, 48, 56].map((w, i) => (
+            <div key={i} className={i % 2 === 0 ? "flex justify-start" : "flex justify-end"}>
+              <Skeleton className="h-10 rounded-2xl" style={{ width: `${w}%` }} />
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-border bg-card px-3 py-3 sm:px-6">
+          <Skeleton className="h-11 w-full rounded-full" />
+        </div>
       </div>
     );
   }
