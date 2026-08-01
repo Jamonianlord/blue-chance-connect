@@ -17,8 +17,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Check, X, Ban, UserMinus, MessageCircle } from "lucide-react";
+import { Loader2, Check, X, Ban, UserMinus, UserPlus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/chats")({
   component: ChatsPage,
@@ -188,8 +189,24 @@ function ChatsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-lg px-4 py-8">
+          <Skeleton className="mb-4 h-6 w-28" />
+          <Skeleton className="mb-3 h-4 w-20" />
+          <div className="-mx-4 divide-y divide-border/50 border-y border-border/50">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3.5 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-3 w-10" />
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -238,9 +255,20 @@ function ChatsPage() {
 
         <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Friends</h2>
         {friends.length === 0 ? (
-          <div className="mt-10 text-center text-sm text-muted-foreground">
-            <MessageCircle className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-            No friends yet. Add someone from an active chat to see them here.
+          <div className="card-hover-glow mt-4 flex flex-col items-center rounded-2xl border border-border bg-card px-6 py-10 text-center shadow-sm">
+            <span className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brand-soft)]">
+              <UserPlus className="h-6 w-6 text-[var(--brand)]" />
+            </span>
+            <p className="text-sm font-semibold text-foreground">No friends yet</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+              Start a chat and add someone you vibe with — they'll show up here.
+            </p>
+            <Button
+              className="brand-gradient btn-pop mt-4 rounded-full px-6 text-white"
+              onClick={() => navigate({ to: "/match" })}
+            >
+              Start chatting
+            </Button>
           </div>
         ) : (
           <div className="-mx-4 divide-y divide-border/50 border-y border-border/50">
