@@ -217,7 +217,12 @@ function MatchPage() {
   if (authLoading || !profile) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+        <div className="w-full max-w-sm space-y-4">
+          <Skeleton className="mx-auto h-40 w-40 rounded-full" />
+          <Skeleton className="mx-auto h-5 w-48" />
+          <Skeleton className="mx-auto h-4 w-64" />
+          <Skeleton className="h-12 w-full rounded-full" />
+        </div>
         {slowLoad && (
           <div className="max-w-sm space-y-3">
             <p className="text-sm text-muted-foreground">
