@@ -221,7 +221,7 @@ const fetchChatAndMessages = async () => {
       supabase.rpc("mark_chat_read", { _chat_id: chatId });
 
       const { data: p } = await supabase.rpc("get_chat_partner", { _chat_id: chatId });
-      const partner = Array.isArray(p) ? p[0] : p;
+      const partner: any = Array.isArray(p) ? p[0] : p;
       if (!cancelled && partner) {
         if (partner.name) setPartnerName(partner.name);
         setPartnerAvatar(partner.avatar_url ?? null);
