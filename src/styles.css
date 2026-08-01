@@ -187,4 +187,5 @@ html.dark, html.dark body { color-scheme: dark; }
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in { animation: none !important; }
   .btn-pop:hover, .btn-pop:active { transform: none; }
+  button:hover, button:active, [data-slot="button"]:hover { transform: none !important; }
 }
