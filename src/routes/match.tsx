@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, X, Bell, BellRing } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePushSubscription } from "@/lib/usePushSubscription";
 
 export const Route = createFileRoute("/match")({
