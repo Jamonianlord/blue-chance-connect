@@ -188,8 +188,24 @@ function ChatsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-lg px-4 py-8">
+          <Skeleton className="mb-4 h-6 w-28" />
+          <Skeleton className="mb-3 h-4 w-20" />
+          <div className="-mx-4 divide-y divide-border/50 border-y border-border/50">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3.5 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-3 w-10" />
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
