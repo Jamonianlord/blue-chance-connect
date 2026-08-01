@@ -45,6 +45,65 @@ function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null
   return ref;
 }
 
+/** Placeholder — swap for a live Supabase presence count later. */
+const ONLINE_COUNT = 1284;
+
+function ChatMockup() {
+  return (
+    <div className="relative mx-auto w-full max-w-sm animate-fade-in-up lg:max-w-md" style={{ animationDelay: "0.4s" }}>
+      <div
+        aria-hidden
+        className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2rem] blur-2xl"
+        style={{ background: "color-mix(in oklab, var(--brand) 22%, transparent)" }}
+      />
+      <div className="rounded-3xl border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
+        {/* header */}
+        <div className="flex items-center gap-3 border-b border-border pb-3">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
+            <Heart className="h-4 w-4" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold leading-tight">Someone new</p>
+            <p className="text-xs text-muted-foreground">online now</p>
+          </div>
+          <Star className="ml-auto h-4 w-4 text-[var(--brand)]" />
+        </div>
+
+        {/* messages */}
+        <div className="space-y-3 py-4">
+          <div className="flex justify-start">
+            <div className="max-w-[75%] rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-2.5 text-sm">
+              Hey! First time here 👋
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <div className="brand-gradient max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm text-white shadow-sm">
+              Same! What are you into?
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-3">
+              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.15s" }} />
+              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.3s" }} />
+            </div>
+          </div>
+        </div>
+
+        {/* composer */}
+        <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
+          <span className="text-sm text-muted-foreground">Say something…</span>
+          <span className="brand-gradient ml-auto flex h-7 w-7 items-center justify-center rounded-full text-white">
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function Landing() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -107,80 +166,77 @@ function Landing() {
             style={{ animationDelay: "-2s" }}
           />
 
-          <div className="relative mx-auto max-w-4xl px-4 pb-16 pt-16 text-center sm:pt-28" ref={heroRef}>
-            <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
-              Meet a stranger in seconds
-            </div>
+          <div
+            className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-16 sm:pt-24 lg:grid-cols-2 lg:gap-8"
+            ref={heroRef}
+          >
+            <div className="text-center lg:text-left">
+              <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
+                Meet a stranger in seconds
+              </div>
 
-            {/* Decorative icon stickers */}
-            <div className="pointer-events-none absolute left-1/2 top-0 -z-10 hidden sm:block" aria-hidden>
-              <div
-                className="animate-float-slow flex h-10 w-10 items-center justify-center rounded-full bg-card/80 shadow-sm"
-                style={{ animationDelay: "-2s", transform: "translateX(170px)" }}
+              <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+                <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.05s" }}>
+                  One click.
+                </span>
+                <br />
+                <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.2s" }}>
+                  One match.
+                </span>
+                <br />
+                <span
+                  className="animate-line-reveal inline-block bg-clip-text text-transparent brand-gradient"
+                  style={{ animationDelay: "0.35s" }}
+                >
+                  One chance.
+                </span>
+              </h1>
+              <p
+                className="mx-auto mt-6 max-w-xl animate-fade-in-up text-base text-muted-foreground sm:text-lg lg:mx-0"
+                style={{ animationDelay: "0.5s" }}
               >
-                <Heart className="h-4 w-4 text-[var(--brand)]" />
-              </div>
-            </div>
-            <div className="pointer-events-none absolute left-1/2 top-28 -z-10 hidden sm:block" aria-hidden>
-              <div
-                className="animate-float-slow flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-soft)] shadow-sm"
-                style={{ animationDelay: "-5s", transform: "translateX(-190px)" }}
-              >
-                <Star className="h-4 w-4 text-[var(--brand)]" />
-              </div>
-            </div>
-            <div className="pointer-events-none absolute left-1/2 top-16 -z-10 hidden md:block" aria-hidden>
-              <div
-                className="animate-float-slow flex h-8 w-8 items-center justify-center rounded-full bg-card/80 shadow-sm"
-                style={{ animationDelay: "-8s", transform: "translateX(230px)" }}
-              >
-                <Zap className="h-3.5 w-3.5 text-[var(--brand)]" />
-              </div>
-            </div>
+                1Chance connects you at random with someone new for a 1-on-1 chat.
+                No feeds, no profiles to swipe — just a real conversation, right now.
+              </p>
 
-            <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-              <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.05s" }}>
-                One click.
-              </span>
-              <br />
-              <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.2s" }}>
-                One match.
-              </span>
-              <br />
-              <span
-                className="animate-line-reveal inline-block bg-clip-text text-transparent brand-gradient"
-                style={{ animationDelay: "0.35s" }}
+              {/* Live-feeling stat */}
+              <div
+                className="mt-6 flex animate-fade-in-up items-center justify-center gap-2 text-sm text-muted-foreground lg:justify-start"
+                style={{ animationDelay: "0.58s" }}
               >
-                One chance.
-              </span>
-            </h1>
-            <p
-              className="mx-auto mt-6 max-w-xl animate-fade-in-up text-base text-muted-foreground sm:text-lg"
-              style={{ animationDelay: "0.5s" }}
-            >
-              1Chance connects you at random with someone new for a 1-on-1 chat.
-              No feeds, no profiles to swipe — just a real conversation, right now.
-            </p>
-            <div
-              className="mt-9 flex flex-col items-center justify-center gap-3 animate-fade-in-up sm:flex-row"
-              style={{ animationDelay: "0.65s" }}
-            >
-              <Button
-                size="lg"
-                onClick={start}
-                className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
+                <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                  <span className="animate-pulse-soft absolute inline-flex h-full w-full rounded-full bg-green-500" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+                </span>
+                <span>
+                  <span className="font-semibold text-foreground">{ONLINE_COUNT.toLocaleString()}</span> people online right now
+                </span>
+              </div>
+
+              <div
+                className="mt-8 flex flex-col items-center justify-center gap-3 animate-fade-in-up sm:flex-row lg:justify-start"
+                style={{ animationDelay: "0.65s" }}
               >
-                Start chatting <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-              {!user && (
-                <Button asChild size="lg" variant="outline" className="h-12 w-full rounded-full px-6 text-base sm:w-auto">
-                  <Link to="/auth">Sign up — it's free</Link>
+                <Button
+                  size="lg"
+                  onClick={start}
+                  className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
+                >
+                  Start chatting <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
-              )}
+                {!user && (
+                  <Button asChild size="lg" variant="outline" className="h-12 w-full rounded-full px-6 text-base sm:w-auto">
+                    <Link to="/auth">Sign up — it's free</Link>
+                  </Button>
+                )}
+              </div>
             </div>
+
+            <ChatMockup />
           </div>
         </section>
+
 
         {/* How it works */}
         <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
