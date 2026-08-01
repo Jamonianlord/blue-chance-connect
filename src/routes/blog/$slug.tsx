@@ -7,6 +7,7 @@ export const Route = createFileRoute("/blog/$slug")({
   component: BlogPostPage,
   head: ({ params }) => {
     const post = getBlogPost(params.slug);
+    const baseUrl = "https://1chance.fun";
     return {
       meta: [
         { title: post ? `${post.title} — 1Chance Blog` : "Blog Post — 1Chance" },
@@ -14,6 +15,9 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:title", content: post ? post.title : "Blog Post — 1Chance" },
         { property: "og:description", content: post ? post.excerpt : "Blog post on 1Chance" },
         { property: "og:type", content: "article" },
+        { property: "og:image", content: post ? `${baseUrl}${post.coverImage}` : `${baseUrl}/og-image.png` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: post ? `${baseUrl}${post.coverImage}` : `${baseUrl}/og-image.png` },
       ],
     };
   },
@@ -52,6 +56,11 @@ function BlogPostPage() {
             </svg>
             Back to blog
           </Link>
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            className="w-full h-64 object-cover rounded-2xl mb-8"
+          />
           <time className="block text-xs text-muted-foreground mb-2" dateTime={post.date}>
             {format(new Date(post.date), "MMMM d, yyyy")}
           </time>

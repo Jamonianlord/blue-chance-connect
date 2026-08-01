@@ -36,19 +36,26 @@ function BlogIndexPage() {
               key={post.slug}
               to="/blog/$slug"
               params={{ slug: post.slug }}
-              className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm flex flex-col h-full"
+              className="card-hover-glow rounded-2xl border border-border bg-card shadow-sm flex flex-col h-full overflow-hidden"
             >
-              <time className="text-xs text-muted-foreground mb-2" dateTime={post.date}>
-                {format(new Date(post.date), "MMMM d, yyyy")}
-              </time>
-              <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-              <p className="text-sm text-muted-foreground flex-1">{post.excerpt}</p>
-              <span className="mt-4 inline-flex items-center gap-1 text-sm text-[var(--brand)] font-medium">
-                Read more
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4-4 4m-6-8h10.586a1 1 0 010 1.414L14.414 21.414a1 1 0 01-1.414 0L3 12.414a1 1 0 010-1.414L11.586 2.586a1 1 0 011.414 0H18" />
-                </svg>
-              </span>
+              <img
+                src={post.coverImage}
+                alt={post.title}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-6 flex flex-col flex-1">
+                <time className="text-xs text-muted-foreground mb-2" dateTime={post.date}>
+                  {format(new Date(post.date), "MMMM d, yyyy")}
+                </time>
+                <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
+                <p className="text-sm text-muted-foreground flex-1">{post.excerpt}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm text-[var(--brand)] font-medium">
+                  Read more
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4-4 4m-6-8h10.586a1 1 0 010 1.414L14.414 21.414a1 1 0 01-1.414 0L3 12.414a1 1 0 010-1.414L11.586 2.586a1 1 0 011.414 0H18" />
+                  </svg>
+                </span>
+              </div>
             </Link>
           ))}
         </div>
