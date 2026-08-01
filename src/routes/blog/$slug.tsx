@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { getBlogPost } from "@/lib/blogPosts";
 import { format } from "date-fns";
+import { marked } from "marked";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: BlogPostPage,
@@ -65,7 +66,9 @@ function BlogPostPage() {
             {format(new Date(post.date), "MMMM d, yyyy")}
           </time>
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-6">{post.title}</h1>
-          <div className="whitespace-pre-wrap">{post.body}</div>
+          <div
+            dangerouslySetInnerHTML={{ __html: marked.parse(post.body) }}
+          />
         </article>
       </main>
     </div>
