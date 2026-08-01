@@ -150,7 +150,6 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests: string[]
-          last_seen: string | null
           name: string
           terms_accepted_at: string | null
           updated_at: string
@@ -163,7 +162,6 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests?: string[]
-          last_seen?: string | null
           name: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -176,7 +174,6 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           interests?: string[]
-          last_seen?: string | null
           name?: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -261,21 +258,7 @@ export type Database = {
         Returns: {
           avatar_url: string
           id: string
-          interests: string[]
-          last_seen: string
           name: string
-        }[]
-      }
-      send_friend_request: {
-        Args: { p_addressee_id: string }
-        Returns: {
-          addressee_id: string
-          chat_id: string | null
-          created_at: string
-          id: string
-          requester_id: string
-          status: Database["public"]["Enums"]["friendship_status"]
-          updated_at: string
         }[]
       }
       get_my_friends: {
