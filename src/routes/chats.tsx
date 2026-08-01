@@ -17,8 +17,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Check, X, Ban, UserMinus, MessageCircle } from "lucide-react";
+import { Loader2, Check, X, Ban, UserMinus, UserPlus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/chats")({
   component: ChatsPage,
