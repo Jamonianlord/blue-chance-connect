@@ -226,7 +226,7 @@ function Landing() {
         </section>
 
         {/* Safety first */}
-        <section className="mx-auto max-w-5xl px-4 py-16 reveal">
+        <section className="mx-auto max-w-5xl px-4 pt-4 pb-16 reveal">
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">Safety first</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">We built 1Chance to feel like a real conversation — not a social media profile.</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
