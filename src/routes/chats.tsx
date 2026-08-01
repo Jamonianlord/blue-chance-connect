@@ -255,9 +255,20 @@ function ChatsPage() {
 
         <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Friends</h2>
         {friends.length === 0 ? (
-          <div className="mt-10 text-center text-sm text-muted-foreground">
-            <MessageCircle className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-            No friends yet. Add someone from an active chat to see them here.
+          <div className="card-hover-glow mt-4 flex flex-col items-center rounded-2xl border border-border bg-card px-6 py-10 text-center shadow-sm">
+            <span className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brand-soft)]">
+              <UserPlus className="h-6 w-6 text-[var(--brand)]" />
+            </span>
+            <p className="text-sm font-semibold text-foreground">No friends yet</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+              Start a chat and add someone you vibe with — they'll show up here.
+            </p>
+            <Button
+              className="brand-gradient btn-pop mt-4 rounded-full px-6 text-white"
+              onClick={() => navigate({ to: "/match" })}
+            >
+              Start chatting
+            </Button>
           </div>
         ) : (
           <div className="-mx-4 divide-y divide-border/50 border-y border-border/50">
