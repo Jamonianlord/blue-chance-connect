@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, Send } from "lucide-react";
+import { Instagram, Mail, Send } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const socials = [
   { name: "Telegram", href: "https://t.me/onechanceweb", icon: Send },
+  { name: "Instagram", href: "https://www.instagram.com/1chanceweb/", icon: Instagram },
 ];
 
 export function Footer() {
@@ -26,6 +27,7 @@ export function Footer() {
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</h4>
             <ul className="mt-3 space-y-2 text-sm">
+              <li><Link to="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
               <li><Link to="/support" className="text-muted-foreground hover:text-foreground">Support</Link></li>
               <li>
                 <a href="mailto:cheapbrosgang@gmail.com" className="text-muted-foreground hover:text-foreground">Contact</a>
