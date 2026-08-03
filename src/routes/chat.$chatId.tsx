@@ -1,7 +1,9 @@
 ﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
+import lamejs from "lamejs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -98,6 +100,37 @@ function msgIsFromMe(msg: Message, userId: string | null): boolean {
   return msg.sender_id === userId;
 }
 
+function encodeToMp3(chunks: Float32Array[], sampleRate: number): Blob {
+  const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
+  const maxSamples = 1152;
+  const merged = new Float32Array(chunks.reduce((sum, c) => sum + c.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  let offset2 = 0;
+  while (offset2 < merged.length) {
+    const sampleChunk = merged.subarray(offset2, offset2 + maxSamples);
+    if (sampleChunk.length === maxSamples) {
+      const intData: number[] = [];
+      for (let i = 0; i < sampleChunk.length; i++) {
+        intData.push(Math.max(-1, Math.min(1, sampleChunk[i]!)) * 0x7fff);
+      }
+      const sample = new Int16Array(intData);
+      const block = mp3Encoder.encodeBuffer(sample);
+      for (let i = 0; i < block.length; i++) {
+        mp3Encoder.buffer.push(block[i]!);
+      }
+    }
+    offset2 += maxSamples;
+  }
+
+  const mp3Data = mp3Encoder.flush();
+  return new Blob([new Uint8Array(mp3Data)], { type: "audio/mpeg" });
+}
+
 function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; durationSeconds: number; mine: boolean }) {
   const [playing, setPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
@@ -136,9 +169,11 @@ function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; du
 
   const handleEnded = () => setPlaying(false);
 
-  return (
+   return (
     <div className="flex items-center gap-2 px-1">
-      <audio ref={audioRef} src={audioSrc} onEnded={handleEnded} />
+      <audio ref={audioRef} onEnded={handleEnded}>
+        <source src={audioSrc} type="audio/mpeg" />
+      </audio>
       <Button
         variant="ghost"
         size="icon"
@@ -172,6 +207,7 @@ function ChatPage() {
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>("none");
   const [friendshipId, setFriendshipId] = useState<string | null>(null);
   const [friendBusy, setFriendBusy] = useState(false);
+  const [ending, setEnding] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [sharedInterests, setSharedInterests] = useState<string[]>([]);
@@ -184,8 +220,11 @@ function ChatPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const audioWorkletRef = useRef<AudioWorkletNode | null>(null);
+  const pcmChunksRef = useRef<Float32Array[]>([]);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingStartRef = useRef<number>(0);
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -246,7 +285,7 @@ const fetchChatAndMessages = async () => {
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at");
       if (!cancelled) setMessages((msgs ?? []) as any[] as Message[]);
 
-      const { data: games } = await (supabase as any).from("chat_games").select("*").eq("chat_id", chatId);
+      const { data: games } = await supabase.from("chat_games").select("*").eq("chat_id", chatId);
       if (!cancelled && games) {
         const map: Record<string, Record<string, unknown>> = {};
         for (const g of games as any[]) {
@@ -256,7 +295,7 @@ const fetchChatAndMessages = async () => {
       }
       
       // Mark chat as read when it loads
-      if (!cancelled) await (supabase as any).rpc("mark_chat_read", { _chat_id: chatId });
+      if (!cancelled) await supabase.rpc("mark_chat_read", { _chat_id: chatId });
       
       // Fetch shared interests
       if (!cancelled && user && pId && partner) {
@@ -291,7 +330,7 @@ const fetchChatAndMessages = async () => {
               });
               
               if (!cancelled && !msgIsFromMe(msg, user?.id)) {
-                (supabase as any).rpc("mark_chat_read", { _chat_id: chatId }).catch(console.error);
+                supabase.rpc("mark_chat_read", { _chat_id: chatId }).then(() => {}, console.error);
               }
             }
           )
@@ -455,14 +494,77 @@ const send = async () => {
     }
   };
 
-  const sendAudio = async () => {
-    if (!user || recording || ended) return;
+  const stopRecordingAndUpload = async () => {
+    if (!user || !streamRef.current || !audioContextRef.current) return;
+
+    const stream = streamRef.current;
+    const audioContext = audioContextRef.current;
+    const source = sourceNodeRef.current;
+
+    setRecording(false);
+
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
+    source?.disconnect();
+    sourceNodeRef.current = null;
+
+    audioContext.close().catch(() => {});
+    audioContextRef.current = null;
+
+    stream.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+
+    const durationMs = Date.now() - recordingStartRef.current;
+    const durationSeconds = Math.round(durationMs / 1000);
+
+    if (pcmChunksRef.current.length === 0) {
+      setRecording(false);
+      setRecordingTime(0);
+      return;
+    }
+
+    const mp3Blob = encodeToMp3(pcmChunksRef.current, audioContext.sampleRate);
+    pcmChunksRef.current = [];
+
+    if (mp3Blob.size === 0) {
+      toast.error("Recording failed — try again");
+      setRecording(false);
+      setRecordingTime(0);
+      return;
+    }
+
+    const tempId = crypto.randomUUID();
+    setUploading(true);
+    setMessages((cur) => [
+      ...cur,
+      { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
+    ]);
+
     try {
-      mediaRecorderRef.current?.stop();
-      const stream = mediaRecorderRef.current?.stream;
-      stream?.getTracks().forEach((t) => t.stop());
-    } catch {
-      // ignore
+      const path = `${chatId}/${user.id}-${Date.now()}.mp3`;
+      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, mp3Blob, { contentType: "audio/mpeg" });
+      if (upErr) throw upErr;
+
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({ chat_id: chatId, sender_id: user.id, audio_url: path, duration_seconds: durationSeconds })
+        .select()
+        .single();
+      if (error) throw error;
+
+      setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
+    } catch (e) {
+      console.error("[chat] audio upload error", e);
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      toast.error(msg);
+      setMessages((cur) => cur.filter((m) => m.id !== tempId));
+    } finally {
+      setUploading(false);
+      setRecording(false);
+      setRecordingTime(0);
     }
   };
 
@@ -470,67 +572,38 @@ const send = async () => {
     if (!user || ended) return;
 
     if (recording) {
-      mediaRecorderRef.current?.stop();
+      await stopRecordingAndUpload();
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
-      mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
+      streamRef.current = stream;
+
+      const audioContext = new AudioContext({ sampleRate: 44100 });
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      sourceNodeRef.current = source;
+
+      pcmChunksRef.current = [];
       recordingStartRef.current = Date.now();
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
+      const bufferSize = 4096;
+      const channelCount = source.channelCount || 1;
+      const recorder = audioContext.createScriptProcessor(bufferSize, channelCount, channelCount);
 
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        if (recordingIntervalRef.current) {
-          clearInterval(recordingIntervalRef.current);
-          recordingIntervalRef.current = null;
-        }
-        setRecording(false);
-        setRecordingTime(0);
-
-        if (audioChunksRef.current.length === 0) return;
-
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm;codecs=opus" });
-        const durationMs = Date.now() - recordingStartRef.current;
-        const durationSeconds = Math.round(durationMs / 1000);
-        const tempId = crypto.randomUUID();
-
-        setUploading(true);
-        setMessages((cur) => [
-          ...cur,
-          { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
-        ]);
-
-        try {
-          const path = `${chatId}/${user.id}-${Date.now()}.webm`;
-          const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: "audio/webm" });
-          if (upErr) throw upErr;
-
-          const { data, error } = await (supabase as any)
-            .from("messages")
-            .insert({ chat_id: chatId, sender_id: user.id, audio_url: path, duration_seconds: durationSeconds })
-            .select()
-            .single();
-          if (error) throw error;
-
-          setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
-        } catch (e) {
-          console.error("[chat] audio upload error", e);
-          const msg = e instanceof Error ? e.message : "Upload failed";
-          toast.error(msg);
-          setMessages((cur) => cur.filter((m) => m.id !== tempId));
-        } finally {
-          setUploading(false);
+      recorder.onaudioprocess = (e) => {
+        if (!recording) return;
+        for (let ch = 0; ch < channelCount; ch++) {
+          const input = e.inputBuffer.getChannelData(ch);
+          pcmChunksRef.current.push(new Float32Array(input));
         }
       };
 
-      recorder.start(200);
+      source.connect(recorder);
+      recorder.connect(audioContext.destination);
+
       setRecording(true);
       recordingIntervalRef.current = setInterval(() => {
         setRecordingTime((t) => t + 1);
@@ -538,6 +611,7 @@ const send = async () => {
     } catch (e) {
       toast.error("Could not access microphone");
       console.error(e);
+      setRecording(false);
     }
   };
 
@@ -549,7 +623,24 @@ const send = async () => {
   };
 
   const endAndNext = async () => {
-    await supabase.rpc("end_chat", { _chat_id: chatId });
+    if (ended || ending) return;
+    setEnding(true);
+    try {
+      const { error } = await supabase.rpc("end_chat", { _chat_id: chatId });
+      if (error) {
+        console.error("[chat] end_chat error", error);
+        toast.error("Could not end chat. Please try again.");
+      } else {
+        setChat((cur) =>
+          cur ? { ...cur, ended_at: new Date().toISOString(), ended_by: user!.id } : cur,
+        );
+      }
+    } catch (err) {
+      console.error("[chat] end_chat unexpected", err);
+      toast.error("Something went wrong.");
+    } finally {
+      setEnding(false);
+    }
   };
 
   const goBack = async () => {
@@ -624,16 +715,16 @@ const send = async () => {
       initialState.status = "active";
       initialState.winner = null;
     }
-    const { data: game, error: gameErr } = await (supabase as any)
+    const { data: game, error: gameErr } = await supabase
       .from("chat_games")
-      .insert({ chat_id: chatId, game_type: gameType, created_by: user.id, status: "active", state: initialState })
+      .insert({ chat_id: chatId, game_type: gameType, created_by: user.id, status: "active", state: initialState as Json })
       .select()
       .single();
     if (gameErr || !game) {
       toast.error(gameErr?.message || "Failed to start game");
       return;
     }
-    const { error: msgErr } = await (supabase as any)
+    const { error: msgErr } = await supabase
       .from("messages")
       .insert({ chat_id: chatId, sender_id: user.id, content: `started a ${gameType.replace("_", " ")} game`, message_type: "game", game_id: game.id });
     if (msgErr) {
@@ -644,7 +735,7 @@ const send = async () => {
 
   const updateGameState = async (gameId: string, newState: Record<string, unknown>) => {
     setGameStates((cur) => ({ ...cur, [gameId]: newState }));
-    await (supabase as any).from("chat_games").update({ state: newState, updated_at: new Date().toISOString() }).eq("id", gameId);
+    await supabase.from("chat_games").update({ state: newState as Json, updated_at: new Date().toISOString() }).eq("id", gameId);
   };
 
   if (authLoading || !chat) {
@@ -758,8 +849,9 @@ const send = async () => {
           </AlertDialog>
 
           {!isFriendChat && (
-            <Button size="sm" onClick={endAndNext} className="ml-1 rounded-full bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
-              <SkipForward className="mr-1 h-4 w-4" /> Next
+            <Button size="sm" onClick={endAndNext} disabled={ending} className="ml-1 rounded-full bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90">
+              {ending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SkipForward className="mr-1 h-4 w-4" />}
+              {ending ? "Ending..." : "Next"}
             </Button>
           )}
         </div>

@@ -31,17 +31,27 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://1chance.fun/blog/how-to-start-a-conversation-with-a-stranger-online</loc>
+    <loc>https://1chance.fun/blog/why-we-built-1chance-around-one-match-at-a-time</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://1chance.fun/blog/is-it-safe-to-chat-with-strangers-online</loc>
+    <loc>https://1chance.fun/blog/staying-safe-while-meeting-strangers-online</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://1chance.fun/blog/best-free-apps-to-meet-new-people</loc>
+    <loc>https://1chance.fun/blog/why-talking-to-a-stranger-beats-swiping-through-profiles</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://1chance.fun/blog/the-conversations-happening-on-1chance-right-now</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://1chance.fun/blog/building-1chance-whats-next-on-our-roadmap</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

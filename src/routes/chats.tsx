@@ -94,7 +94,7 @@ function ChatsPage() {
   const load = useCallback(async () => {
     if (!user) return;
     const [{ data: f, error: fErr }, { data: r, error: rErr }] = await Promise.all([
-      (supabase as any).rpc("get_my_friends"),
+      supabase.rpc("get_my_friends"),
       (supabase as any).rpc("get_pending_friend_requests"),
     ]);
     if (fErr) toast.error(fErr.message);
@@ -112,7 +112,7 @@ function ChatsPage() {
     };
     window.addEventListener("visibilitychange", handleVisibility);
 
-    const channel = (supabase as any)
+    const channel = supabase
       .channel(`chats-page:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => load())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
@@ -126,7 +126,7 @@ function ChatsPage() {
 
   const acceptRequest = async (friendshipId: string) => {
     setBusyId(friendshipId);
-    const { data: chatId, error } = await (supabase as any).rpc("accept_friend_request", {
+    const { data: chatId, error } = await supabase.rpc("accept_friend_request", {
       p_request_id: friendshipId,
     });
     setBusyId(null);
@@ -141,7 +141,7 @@ function ChatsPage() {
 
   const declineRequest = async (friendshipId: string) => {
     setBusyId(friendshipId);
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("friendships")
       .update({ status: "declined" })
       .eq("id", friendshipId);
@@ -155,7 +155,7 @@ function ChatsPage() {
 
   const unfriend = async (friendshipId: string) => {
     setBusyId(friendshipId);
-    const { error } = await (supabase as any).rpc("unfriend", { p_friendship_id: friendshipId });
+    const { error } = await supabase.rpc("unfriend", { p_friendship_id: friendshipId });
     setBusyId(null);
     if (error) {
       toast.error(error.message);
@@ -167,7 +167,7 @@ function ChatsPage() {
 
   const blockFriend = async (friendshipId: string, friendId: string) => {
     setBusyId(friendshipId);
-    const { error: unfriendErr } = await (supabase as any).rpc("unfriend", {
+    const { error: unfriendErr } = await supabase.rpc("unfriend", {
       p_friendship_id: friendshipId,
     });
     if (unfriendErr) {
@@ -175,7 +175,7 @@ function ChatsPage() {
       toast.error(unfriendErr.message);
       return;
     }
-    const { error: blockErr } = await (supabase as any)
+    const { error: blockErr } = await supabase
       .from("blocks")
       .insert({ blocker_id: user!.id, blocked_id: friendId });
     setBusyId(null);

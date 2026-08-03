@@ -42,26 +42,28 @@ export function Header() {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
-      const { count } = await (supabase as any)
+      const { count } = await supabase
         .from("friendships")
         .select("id", { count: "exact", head: true })
         .eq("addressee_id", user.id)
         .eq("status", "pending");
       if (!cancelled) setPendingCount(count ?? 0);
       
-      const { count: unreadCountResult, error } = await (supabase as any)
-        .rpc("get_total_unread_count");
-      if (!error && !cancelled) setUnreadCount(unreadCountResult ?? 0);
+      const { data: friends, error: friendsError } = await supabase.rpc("get_my_friends");
+      if (!friendsError && !cancelled && friends) {
+        const totalUnread = friends.reduce((sum, f) => sum + (f.unread_count ?? 0), 0);
+        setUnreadCount(totalUnread);
+      }
     };
     load();
     
-    const channel = (supabase as any)
+    const channel = supabase
       .channel(`header:${user.id}`)
       .on("postgres_changes",
         { event: "*", schema: "public", table: "friendships", filter: `addressee_id=eq.${user.id}` },
         () => load())
       .on("postgres_changes",
-        { event: "*", schema: "public", table: "messages", filter: "read_at=is.null" },
+        { event: "*", schema: "public", table: "friendships", filter: `requester_id=eq.${user.id}` },
         () => load())
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
