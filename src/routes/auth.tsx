@@ -131,19 +131,25 @@ const parsed = signupSchema.safeParse({
     <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-md">
         <div className="mb-4 flex justify-center sm:mb-6"><Link to="/"><Logo /></Link></div>
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-xl sm:rounded-3xl sm:p-8">
-          <div className="mb-5 flex rounded-full bg-muted p-1 text-sm font-medium sm:mb-6">
+        <div className="animate-auth-card rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-8">
+          <div className="relative mb-5 flex rounded-full bg-muted p-1 text-sm sm:mb-6">
+            <span
+              aria-hidden
+              className="auth-tab-indicator absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-card"
+              style={{ transform: mode === "signup" ? "translateX(0%)" : "translateX(100%)" }}
+            />
             <button
               type="button"
               onClick={() => setMode("signup")}
-              className={"flex-1 rounded-full px-4 py-2 transition " + (mode === "signup" ? "bg-card text-foreground shadow" : "text-muted-foreground")}
+              className={"relative z-10 flex-1 rounded-full px-4 py-2 transition-colors duration-200 " + (mode === "signup" ? "font-semibold text-foreground" : "font-medium text-muted-foreground/70")}
             >Sign up</button>
             <button
               type="button"
               onClick={() => setMode("signin")}
-              className={"flex-1 rounded-full px-4 py-2 transition " + (mode === "signin" ? "bg-card text-foreground shadow" : "text-muted-foreground")}
+              className={"relative z-10 flex-1 rounded-full px-4 py-2 transition-colors duration-200 " + (mode === "signin" ? "font-semibold text-foreground" : "font-medium text-muted-foreground/70")}
             >Sign in</button>
           </div>
+
 
           <form onSubmit={submit} className="space-y-4">
             {mode === "signup" && (
