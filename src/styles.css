@@ -189,3 +189,35 @@ html.dark, html.dark body { color-scheme: dark; }
   .btn-pop:hover, .btn-pop:active { transform: none; }
   button:hover, button:active, [data-slot="button"]:hover { transform: none !important; }
 }
+
+/* Auth screen micro-interactions */
+@keyframes auth-card-in {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@utility animate-auth-card { animation: auth-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@utility auth-input {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+  &:focus-visible {
+    transform: scale(1.015);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 22%, transparent);
+    outline: none;
+  }
+}
+
+@utility auth-submit {
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.14s ease-out;
+  &:active { transform: scale(0.97); opacity: 0.88; }
+}
+
+@utility auth-tab-indicator {
+  transition: transform 0.3s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-auth-card { animation: none !important; }
+  .auth-input:focus-visible, .auth-submit:active { transform: none; }
+  .auth-tab-indicator { transition: none; }
+}
