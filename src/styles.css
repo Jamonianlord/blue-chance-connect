@@ -221,3 +221,45 @@ html.dark, html.dark body { color-scheme: dark; }
   .auth-input:focus-visible, .auth-submit:active { transform: none; }
   .auth-tab-indicator { transition: none; }
 }
+
+/* ---- Auth animated background scene ---- */
+@keyframes auth-gradient-shift {
+  0%   { transform: translate3d(-4%, -3%, 0) scale(1.05); }
+  50%  { transform: translate3d(4%, 3%, 0) scale(1.15); }
+  100% { transform: translate3d(-4%, -3%, 0) scale(1.05); }
+}
+@keyframes auth-blob-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(6%, -8%, 0) scale(1.08); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes auth-particle {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0.15; }
+  50%  { transform: translate3d(10px, -26px, 0); opacity: 0.55; }
+  100% { transform: translate3d(0, 0, 0); opacity: 0.15; }
+}
+@keyframes auth-bubble-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(0, -12px, 0) scale(1.04); }
+}
+
+@utility auth-gradient-layer {
+  animation: auth-gradient-shift 14s ease-in-out infinite;
+  will-change: transform;
+}
+@utility auth-blob {
+  animation: auth-blob-drift 22s ease-in-out infinite;
+  will-change: transform;
+}
+@utility auth-particle {
+  animation: auth-particle 12s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@utility auth-bubble {
+  animation: auth-bubble-float 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-gradient-layer, .auth-blob, .auth-particle, .auth-bubble { animation: none !important; }
+}

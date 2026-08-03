@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Logo } from "@/components/Logo";
+import { AuthScene } from "@/components/AuthScene";
+
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -128,10 +130,12 @@ const parsed = signupSchema.safeParse({
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--brand-soft)]/40 px-3 py-6 sm:px-4 sm:py-12">
+      <AuthScene />
+      <div className="relative z-10 w-full max-w-md">
         <div className="mb-4 flex justify-center sm:mb-6"><Link to="/"><Logo /></Link></div>
-        <div className="animate-auth-card rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-8">
+        <div className="animate-auth-card rounded-2xl border border-border/70 bg-card/75 p-5 backdrop-blur-xl sm:rounded-3xl sm:p-8">
+
           <div className="relative mb-5 flex rounded-full bg-muted p-1 text-sm sm:mb-6">
             <span
               aria-hidden
