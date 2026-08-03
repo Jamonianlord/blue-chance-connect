@@ -5,7 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, User as UserIcon, MessageCircle } from "lucide-react";
+import { LogOut, User as UserIcon, MessageCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export function Header() {
