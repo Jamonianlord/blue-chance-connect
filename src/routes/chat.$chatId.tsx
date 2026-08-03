@@ -33,7 +33,11 @@ import {
   MicOff,
   Play,
   Pause,
+  Gamepad2,
 } from "lucide-react";
+import { GamePicker } from "@/components/chat-games/GamePicker";
+import { GameCard } from "@/components/chat-games/GameCard";
+import type { GameType } from "@/components/chat-games/types";
 import { Logo } from "@/components/Logo";
 import { SignedImage, Avatar } from "@/components/SignedImage";
 
@@ -59,6 +63,8 @@ type Message = {
   audio_url: string | null;
   duration_seconds: number | null;
   created_at: string;
+  message_type: "text" | "game";
+  game_id: string | null;
 };
 
 type ChatRow = {
@@ -170,6 +176,9 @@ function ChatPage() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [sharedInterests, setSharedInterests] = useState<string[]>([]);
   const [partnerLastSeen, setPartnerLastSeen] = useState<string | null>(null);
+  const [gameStates, setGameStates] = useState<Record<string, Record<string, unknown>>>({});
+  const [showGamePicker, setShowGamePicker] = useState(false);
+  const gamePickerRef = useRef<HTMLDivElement>(null);
   const partnerOnline = partnerLastSeen ? new Date(partnerLastSeen).getTime() >= Date.now() - 90_000 : false;
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -218,7 +227,7 @@ const fetchChatAndMessages = async () => {
         navigate({ to: "/match" });
         return;
       }
-      setChat(c as ChatRow);
+      setChat(c as any);
       supabase.rpc("mark_chat_read", { _chat_id: chatId });
 
       const { data: p } = await supabase.rpc("get_chat_partner", { _chat_id: chatId });
@@ -235,7 +244,16 @@ const fetchChatAndMessages = async () => {
       if (cRow.chat_type === "random") await fetchFriendship(pId);
 
       const { data: msgs } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at");
-      if (!cancelled) setMessages((msgs ?? []) as Message[]);
+      if (!cancelled) setMessages((msgs ?? []) as any[] as Message[]);
+
+      const { data: games } = await (supabase as any).from("chat_games").select("*").eq("chat_id", chatId);
+      if (!cancelled && games) {
+        const map: Record<string, Record<string, unknown>> = {};
+        for (const g of games as any[]) {
+          map[g.id] = { ...g.state, game_type: g.game_type };
+        }
+        setGameStates(map);
+      }
       
       // Mark chat as read when it loads
       if (!cancelled) await (supabase as any).rpc("mark_chat_read", { _chat_id: chatId });
@@ -262,7 +280,7 @@ const fetchChatAndMessages = async () => {
       if (cancelled || !user) return;
       const newChannel = supabase
         .channel(`chat:${chatId}`, { config: { broadcast: { self: false } } })
-.on(
+        .on(
             "postgres_changes",
             { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
             (payload) => {
@@ -272,12 +290,31 @@ const fetchChatAndMessages = async () => {
                 return [...cur, msg];
               });
               
-              // Mark as read when receiving a new message from the other user while we're visible
               if (!cancelled && !msgIsFromMe(msg, user?.id)) {
                 (supabase as any).rpc("mark_chat_read", { _chat_id: chatId }).catch(console.error);
               }
             }
           )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "chat_games", filter: `chat_id=eq.${chatId}` },
+          (payload) => {
+            const game = payload.new as { id: string; state: Record<string, unknown> };
+            if (!cancelled) {
+              setGameStates((cur) => ({ ...cur, [game.id]: game.state }));
+            }
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "chat_games", filter: `chat_id=eq.${chatId}` },
+          (payload) => {
+            const game = payload.new as { id: string; state: Record<string, unknown> };
+            if (!cancelled) {
+              setGameStates((cur) => ({ ...cur, [game.id]: game.state }));
+            }
+          }
+        )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "chats", filter: `id=eq.${chatId}` },
@@ -365,6 +402,8 @@ const send = async () => {
       audio_url: null,
       duration_seconds: null,
       created_at: new Date().toISOString(),
+      message_type: "text",
+      game_id: null,
     };
     setMessages((cur) => [...cur, optimisticMsg]);
     const { data, error } = await supabase
@@ -398,9 +437,9 @@ const send = async () => {
     try {
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${chatId}/${user.id}-${Date.now()}.${ext}`;
-setMessages((cur) => [
+      setMessages((cur) => [
         ...cur,
-        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString() },
+        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
       ]);
       const { error: upErr } = await supabase.storage.from("chat-images").upload(path, file, { contentType: file.type });
       if (upErr) throw upErr;
@@ -465,7 +504,7 @@ setMessages((cur) => [
         setUploading(true);
         setMessages((cur) => [
           ...cur,
-          { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString() },
+          { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
         ]);
 
         try {
@@ -571,6 +610,41 @@ setMessages((cur) => [
     await supabase.from("reports").insert({ reporter_id: user.id, reported_id: partnerId, reason: reportReason || null });
     toast.success("Report submitted. Thank you.");
     setReportReason("");
+  };
+
+  const createGame = async (gameType: GameType) => {
+    if (!user || ended) return;
+    setShowGamePicker(false);
+    const initialState: Record<string, unknown> = { game_type: gameType };
+    if (gameType === "tic_tac_toe") {
+      initialState.board = Array(9).fill(null);
+      initialState.turn = user.id;
+      initialState.created_by = user.id;
+      initialState.opponent_id = partnerId!;
+      initialState.status = "active";
+      initialState.winner = null;
+    }
+    const { data: game, error: gameErr } = await (supabase as any)
+      .from("chat_games")
+      .insert({ chat_id: chatId, game_type: gameType, created_by: user.id, status: "active", state: initialState })
+      .select()
+      .single();
+    if (gameErr || !game) {
+      toast.error(gameErr?.message || "Failed to start game");
+      return;
+    }
+    const { error: msgErr } = await (supabase as any)
+      .from("messages")
+      .insert({ chat_id: chatId, sender_id: user.id, content: `started a ${gameType.replace("_", " ")} game`, message_type: "game", game_id: game.id });
+    if (msgErr) {
+      toast.error("Game created but message failed");
+    }
+    setGameStates((cur) => ({ ...cur, [game.id]: initialState }));
+  };
+
+  const updateGameState = async (gameId: string, newState: Record<string, unknown>) => {
+    setGameStates((cur) => ({ ...cur, [gameId]: newState }));
+    await (supabase as any).from("chat_games").update({ state: newState, updated_at: new Date().toISOString() }).eq("id", gameId);
   };
 
   if (authLoading || !chat) {
@@ -763,6 +837,16 @@ setMessages((cur) => [
                   ) : (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   )}
+                  {m.message_type === "game" && m.game_id && gameStates[m.game_id] && (
+                    <div className="mt-2">
+                      <GameCard
+                        gameType={(gameStates[m.game_id]?.game_type as GameType) || "dice"}
+                        state={gameStates[m.game_id]}
+                        currentUserId={user!.id}
+                        onMove={(newState) => updateGameState(m.game_id!, newState)}
+                      />
+                    </div>
+                  )}
                   <div
                     className={
                       "text-[10px] font-normal tabular-nums " +
@@ -832,6 +916,20 @@ setMessages((cur) => [
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </Button>
+              <div className="relative">
+                <Button
+                  type="button"
+                  onClick={() => setShowGamePicker((o) => !o)}
+                  disabled={uploading || ended}
+                  size="icon"
+                  variant="ghost"
+                  className="h-10 w-10 shrink-0 rounded-full text-[var(--brand)] transition-transform hover:bg-[var(--brand-soft)] active:scale-95"
+                  aria-label="Open games"
+                >
+                  <Gamepad2 className="h-4 w-4" />
+                </Button>
+                <GamePicker open={showGamePicker} onOpenChange={setShowGamePicker} onSelect={createGame} />
+              </div>
               <Button
                 type="button"
                 onClick={toggleRecording}
