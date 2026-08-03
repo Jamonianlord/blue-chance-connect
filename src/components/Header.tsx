@@ -114,6 +114,9 @@ export function Header() {
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
+                <Link to="/groups"><Users className="h-4 w-4" /><span className="hidden sm:inline">Groups</span></Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
                 <Link to="/profile"><UserIcon className="h-4 w-4" /><span className="hidden sm:inline">Profile</span></Link>
               </Button>
               <ThemeToggle />

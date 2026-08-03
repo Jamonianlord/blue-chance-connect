@@ -22,6 +22,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GroupsIndexRouteImport } from './routes/groups/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as GroupsGroupIdRouteImport } from './routes/groups/$groupId'
 import { Route as ChatChatIdRouteImport } from './routes/chat.$chatId'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
@@ -90,6 +91,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupsGroupIdRoute = GroupsGroupIdRouteImport.update({
+  id: '/groups/$groupId',
+  path: '/groups/$groupId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatChatIdRoute = ChatChatIdRouteImport.update({
   id: '/chat/$chatId',
   path: '/chat/$chatId',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
+  '/groups/$groupId': typeof GroupsGroupIdRoute
   '/blog/': typeof BlogIndexRoute
   '/groups/': typeof GroupsIndexRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
+  '/groups/$groupId': typeof GroupsGroupIdRoute
   '/blog': typeof BlogIndexRoute
   '/groups': typeof GroupsIndexRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
+  '/groups/$groupId': typeof GroupsGroupIdRoute
   '/blog/': typeof BlogIndexRoute
   '/groups/': typeof GroupsIndexRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/blog/$slug'
     | '/chat/$chatId'
+    | '/groups/$groupId'
     | '/blog/'
     | '/groups/'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/blog/$slug'
     | '/chat/$chatId'
+    | '/groups/$groupId'
     | '/blog'
     | '/groups'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/blog/$slug'
     | '/chat/$chatId'
+    | '/groups/$groupId'
     | '/blog/'
     | '/groups/'
   fileRoutesById: FileRoutesById
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ChatChatIdRoute: typeof ChatChatIdRoute
+  GroupsGroupIdRoute: typeof GroupsGroupIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GroupsIndexRoute: typeof GroupsIndexRoute
 }
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/groups/$groupId': {
+      id: '/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof GroupsGroupIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat/$chatId': {
       id: '/chat/$chatId'
       path: '/chat/$chatId'
@@ -349,19 +369,10 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   ChatChatIdRoute: ChatChatIdRoute,
+  GroupsGroupIdRoute: GroupsGroupIdRoute,
   BlogIndexRoute: BlogIndexRoute,
   GroupsIndexRoute: GroupsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
