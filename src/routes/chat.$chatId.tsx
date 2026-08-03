@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
+import { Mp3Encoder } from "@breezystack/lamejs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Ban,
+  ChevronLeft,
   Flag,
   Send,
   SkipForward,
@@ -99,46 +101,47 @@ function msgIsFromMe(msg: Message, userId: string | null): boolean {
   return msg.sender_id === userId;
 }
 
-function encodeToWav(chunks: Float32Array[], sampleRate: number): Blob {
-  const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
-  const buffer = new ArrayBuffer(44 + totalLength * 2);
-  const view = new DataView(buffer);
-
-  function writeString(offset: number, str: string) {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  }
-
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + totalLength * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
-  view.setUint32(40, totalLength * 2, true);
-
-  let offset = 44;
+function encodeToMp3(chunks: Float32Array[], sampleRate: number): Blob {
+  const encoder = new Mp3Encoder(1, sampleRate, 96);
+  const merged = new Float32Array(chunks.reduce((sum, c) => sum + c.length, 0));
+  let offset = 0;
   for (const chunk of chunks) {
-    for (let i = 0; i < chunk.length; i++) {
-      const s = Math.max(-1, Math.min(1, chunk[i]!));
-      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-      offset += 2;
-    }
+    merged.set(chunk, offset);
+    offset += chunk.length;
   }
 
-  return new Blob([buffer], { type: 'audio/wav' });
+  const parts: Uint8Array[] = [];
+  const frameSize = 1152;
+  for (let i = 0; i < merged.length; i += frameSize) {
+    const slice = merged.subarray(i, Math.min(i + frameSize, merged.length));
+    const int16 = new Int16Array(slice.length);
+    for (let j = 0; j < slice.length; j++) {
+      const s = Math.max(-1, Math.min(1, slice[j]!));
+      int16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    const block = encoder.encodeBuffer(int16);
+    parts.push(block);
+  }
+  parts.push(encoder.flush());
+
+  const total = parts.reduce((sum, p) => sum + p.length, 0);
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for (const p of parts) {
+    out.set(p, pos);
+    pos += p.length;
+  }
+  return new Blob([out], { type: "audio/mpeg" });
 }
 
-function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; durationSeconds: number; mine: boolean }) {
+function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audioUrl: string; durationSeconds: number; mine: boolean; messageId: string }) {
   const [playing, setPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [elapsed, setElapsed] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const waveformRef = useRef<number[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +161,15 @@ function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; du
   }, [audioUrl]);
 
   useEffect(() => {
+    const seed = messageId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const bars: number[] = [];
+    for (let i = 0; i < 24; i++) {
+      bars.push(((seed * (i + 1) * 7) % 100) / 100);
+    }
+    waveformRef.current = bars;
+  }, [messageId]);
+
+  useEffect(() => {
     if (playing && audioRef.current) {
       audioRef.current.play().catch(() => setPlaying(false));
     } else if (audioRef.current) {
@@ -165,29 +177,70 @@ function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; du
     }
   }, [playing]);
 
+  useEffect(() => {
+    if (playing) {
+      progressInterval.current = setInterval(() => {
+        setElapsed((t) => t + 100);
+      }, 100);
+    } else {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+      progressInterval.current = null;
+    }
+    return () => { if (progressInterval.current) clearInterval(progressInterval.current); };
+  }, [playing]);
+
   const togglePlay = () => {
     if (loading || !audioSrc) return;
     setPlaying((p) => !p);
   };
 
-  const handleEnded = () => setPlaying(false);
+  const handleEnded = () => {
+    setPlaying(false);
+    setElapsed(0);
+  };
 
-   return (
+  const bars = waveformRef.current;
+  const progress = durationSeconds > 0 ? Math.min(1, elapsed / (durationSeconds * 1000)) : 0;
+
+  return (
     <div className="flex items-center gap-2 px-1">
-      <audio ref={audioRef} onEnded={handleEnded}>
-        <source src={audioSrc} type="audio/wav" />
-      </audio>
+      <audio ref={audioRef} src={audioSrc} onEnded={handleEnded} />
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-white/90"
+        className="h-8 w-8 shrink-0 text-white/90"
         onClick={togglePlay}
         disabled={loading}
         aria-label={playing ? "Pause" : "Play"}
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
       </Button>
-      <span className="text-xs text-white/70 min-w-[50px]">{formatTime(durationSeconds)}</span>
+      <div className="relative flex items-center gap-[2px] h-6 flex-1 overflow-hidden" aria-hidden="true">
+        {bars.map((h, i) => (
+          <div
+            key={i}
+            className="w-[2px] rounded-full transition-transform duration-150"
+            style={{
+              height: `${Math.max(4, h * 100)}%`,
+              backgroundColor: mine ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.3)",
+              transform: `scaleY(${0.3 + h * 0.7})`,
+              opacity: 0.5 + h * 0.5,
+            }}
+          />
+        ))}
+        {playing && (
+          <div
+            className="absolute top-0 bottom-0 left-0 w-[2px] rounded-full bg-[var(--brand)]"
+            style={{
+              left: `${progress * 100}%`,
+              transform: "translateX(-50%)",
+            }}
+          />
+        )}
+      </div>
+      <span className="text-xs text-white/70 min-w-[50px] text-right tabular-nums">
+        {playing ? formatTime(Math.max(0, durationSeconds - elapsed / 1000)) : formatTime(durationSeconds)}
+      </span>
     </div>
   );
 }
@@ -230,6 +283,7 @@ function ChatPage() {
   const pcmChunksRef = useRef<Float32Array[]>([]);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingStartRef = useRef<number>(0);
+  const recordingDragXRef = useRef<number>(0);
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -535,9 +589,9 @@ const send = async () => {
     const tempId = crypto.randomUUID();
 
     try {
-      const wavBlob = encodeToWav(chunks, sampleRate);
+      const mp3Blob = encodeToMp3(chunks, sampleRate);
 
-      if (wavBlob.size === 0) {
+      if (mp3Blob.size === 0) {
         toast.error("Recording failed — try again");
         setRecordingTime(0);
         return;
@@ -549,8 +603,8 @@ const send = async () => {
         { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
       ]);
 
-      const path = `${chatId}/${user.id}-${Date.now()}.wav`;
-      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, wavBlob, { contentType: "audio/wav" });
+      const path = `${chatId}/${user.id}-${Date.now()}.mp3`;
+      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, mp3Blob, { contentType: "audio/mpeg" });
       if (upErr) throw upErr;
 
       const { data, error } = await supabase
@@ -624,6 +678,47 @@ const send = async () => {
       console.error(e);
       setRecording(false);
     }
+  };
+
+  const cancelRecording = async () => {
+    recordingDragXRef.current = 0;
+    setRecording(false);
+    setRecordingTime(0);
+    isRecordingRef.current = false;
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    pcmChunksRef.current = [];
+    sourceNodeRef.current = null;
+  };
+
+  const onRecordingPointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    recordingDragXRef.current = 0;
+  };
+
+  const onRecordingPointerMove = (e: React.PointerEvent) => {
+    const x = e.clientX - (e.target as HTMLElement).getBoundingClientRect().left;
+    recordingDragXRef.current = x;
+  };
+
+  const onRecordingPointerUp = (e: React.PointerEvent) => {
+    if (recordingDragXRef.current < -60) {
+      cancelRecording();
+      toast.info("Voice note cancelled");
+      return;
+    }
+    recordingDragXRef.current = 0;
+    stopRecordingAndUpload();
   };
 
   const onType = (v: string) => {
@@ -931,12 +1026,13 @@ const send = async () => {
                         <Loader2 className="h-5 w-5 animate-spin text-white/80" />
                       </div>
                     )
-                  ) : isAudio ? (
-                    <AudioPlayer
-                      audioUrl={m.audio_url!}
-                      durationSeconds={m.duration_seconds ?? 0}
-                      mine={mine}
-                    />
+                   ) : isAudio ? (
+                     <VoiceNoteBubble
+                       audioUrl={m.audio_url!}
+                       durationSeconds={m.duration_seconds ?? 0}
+                       mine={mine}
+                       messageId={m.id}
+                     />
                   ) : (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   )}
@@ -1044,25 +1140,36 @@ const send = async () => {
               >
                 {recording ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
               </Button>
-              {recording && (
-                <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-2 py-1 text-xs font-medium text-[var(--brand)]">
-                  <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--brand)]" />
-                  {recordingTime}s
-                </div>
-              )}
-              <Input
-                value={input}
-                onChange={(e) => onType(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    send();
-                  }
-                }}
-                placeholder="Type a message…"
-                className="h-10 flex-1 rounded-full border-0 bg-transparent px-3 text-[15px] shadow-none focus-visible:ring-0"
-                maxLength={2000}
-              />
+               {recording && (
+                 <div
+                   className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--brand)]/10 px-3 py-1.5 text-xs font-medium text-[var(--brand)]"
+                   onPointerDown={onRecordingPointerDown}
+                   onPointerMove={onRecordingPointerMove}
+                   onPointerUp={onRecordingPointerUp}
+                    onPointerCancel={() => { recordingDragXRef.current = 0; }}
+                   style={{ cursor: "grab", userSelect: "none" }}
+                 >
+                   <span className="flex h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+                   <span className="tabular-nums">{formatTime(recordingTime)}</span>
+                   <span className="text-[var(--brand)]/60">
+                     <ChevronLeft className="h-3 w-3" />
+                   </span>
+                   <span className="text-[10px] text-[var(--brand)]/50">slide to cancel</span>
+                 </div>
+               )}
+               <Input
+                 value={input}
+                 onChange={(e) => onType(e.target.value)}
+                 onKeyDown={(e) => {
+                   if (e.key === "Enter" && !e.shiftKey) {
+                     e.preventDefault();
+                     send();
+                   }
+                 }}
+                 placeholder={recording ? "" : "Type a message…"}
+                 className={`h-10 flex-1 rounded-full border-0 bg-transparent px-3 text-[15px] shadow-none focus-visible:ring-0 ${recording ? "opacity-0 pointer-events-none" : ""}`}
+                 maxLength={2000}
+               />
               <Button
                 onClick={send}
                 disabled={sending || !input.trim()}
