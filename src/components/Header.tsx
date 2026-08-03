@@ -5,7 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, User as UserIcon, MessageCircle } from "lucide-react";
+import { LogOut, User as UserIcon, MessageCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export function Header() {
@@ -112,6 +112,9 @@ export function Header() {
                     </span>
                   )}
                 </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/groups"><Users className="h-4 w-4" /><span className="hidden sm:inline">Groups</span></Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/profile"><UserIcon className="h-4 w-4" /><span className="hidden sm:inline">Profile</span></Link>
