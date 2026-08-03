@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Logo } from "@/components/Logo";
+import { AuthScene } from "@/components/AuthScene";
+
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
