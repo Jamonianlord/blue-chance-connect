@@ -639,7 +639,7 @@ const send = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const audioContext = new AudioContext({ sampleRate: 44100 });
+      const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
 
       if (audioContext.state === "suspended") {
