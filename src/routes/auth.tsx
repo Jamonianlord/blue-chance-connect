@@ -183,8 +183,9 @@ const parsed = signupSchema.safeParse({
             )}
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+              <Input id="email" type="email" className="auth-input" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
+
             {mode === "signup" && (
               <div>
                 <input
