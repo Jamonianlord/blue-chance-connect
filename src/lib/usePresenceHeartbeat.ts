@@ -8,8 +8,12 @@ export function usePresenceHeartbeat(userId: string | undefined) {
     if (!userId) return;
 
     const ping = async () => {
-      if (document.visibilityState !== "visible") return;
-      await supabase.from("profiles" as any).update({ last_seen: new Date().toISOString() }).eq("id", userId);
+      try {
+        if (document.visibilityState !== "visible") return;
+        await supabase.from("profiles").update({ last_seen: new Date().toISOString() }).eq("id", userId);
+      } catch {
+        // silent
+      }
     };
 
     ping();

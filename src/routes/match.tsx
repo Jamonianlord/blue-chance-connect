@@ -144,6 +144,17 @@ function MatchPage() {
       }
     };
 
+    const handlePageHide = () => {
+      if (user) {
+        supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      }
+      if (presenceRef.current) {
+        presenceRef.current?.untrack();
+        supabase.removeChannel(presenceRef.current);
+        presenceRef.current = null;
+      }
+    };
+
     const handleVisibility = async () => {
       if (document.visibilityState === "visible" && searching && user) {
         console.log("[match] tab visible, re-checking match state...");
@@ -199,6 +210,7 @@ function MatchPage() {
     }
 
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
@@ -211,6 +223,7 @@ function MatchPage() {
         presenceRef.current = null;
       }
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [searching, user, lookingFor]);

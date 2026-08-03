@@ -162,6 +162,7 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests: string[]
+          last_seen: string | null
           name: string
           terms_accepted_at: string | null
           updated_at: string
@@ -174,6 +175,7 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests?: string[]
+          last_seen?: string | null
           name: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -186,6 +188,7 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           interests?: string[]
+          last_seen?: string | null
           name?: string
           terms_accepted_at?: string | null
           updated_at?: string
