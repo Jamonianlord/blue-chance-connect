@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5F7AE9"/>
+      <stop offset="100%" stop-color="#325FDC"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(350, 160)" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="0" y="0" width="220" height="140" rx="20" fill="white" fill-opacity="0.15" stroke="white"/>
+    <circle cx="30" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <circle cx="60" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <circle cx="90" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <rect x="20" y="70" width="180" height="14" rx="7" fill="white" fill-opacity="0.2"/>
+    <rect x="20" y="92" width="140" height="14" rx="7" fill="white" fill-opacity="0.2"/>
+  </g>
+  <g transform="translate(600, 200)" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="0" y="0" width="220" height="140" rx="20" fill="white" fill-opacity="0.15" stroke="white"/>
+    <circle cx="30" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <circle cx="60" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <circle cx="90" cy="30" r="12" fill="white" fill-opacity="0.3"/>
+    <rect x="20" y="70" width="180" height="14" rx="7" fill="white" fill-opacity="0.2"/>
+    <rect x="20" y="92" width="140" height="14" rx="7" fill="white" fill-opacity="0.2"/>
+  </g>
+  <line x1="570" y1="230" x2="630" y2="230" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>

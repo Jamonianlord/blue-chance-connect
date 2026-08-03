@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5F7AE9"/>
+      <stop offset="100%" stop-color="#325FDC"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(440, 160)" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="60" cy="70" r="50" fill="white" fill-opacity="0.1" stroke="white" stroke-width="5"/>
+    <circle cx="60" cy="70" r="30" fill="white" fill-opacity="0.1" stroke="white" stroke-width="4"/>
+    <path d="M60 40 L60 20" stroke="white" stroke-width="4"/>
+    <circle cx="60" cy="20" r="5" fill="white" fill-opacity="0.6"/>
+    <path d="M60 100 L60 120" stroke="white" stroke-width="4"/>
+    <circle cx="60" cy="120" r="5" fill="white" fill-opacity="0.6"/>
+    <path d="M30 70 L10 70" stroke="white" stroke-width="4"/>
+    <circle cx="10" cy="70" r="5" fill="white" fill-opacity="0.6"/>
+    <path d="M90 70 L110 70" stroke="white" stroke-width="4"/>
+    <circle cx="110" cy="70" r="5" fill="white" fill-opacity="0.6"/>
+    <circle cx="60" cy="70" r="8" fill="white"/>
+  </g>
+</svg>

@@ -57,18 +57,14 @@ function BlogPostPage() {
             </svg>
             Back to blog
           </Link>
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="w-full h-64 object-cover rounded-2xl mb-8"
-          />
+          <img src={post.coverImage} alt={post.title} className="w-full h-64 object-cover rounded-2xl mb-8" />
+          <span className="inline-block rounded-full bg-[var(--brand)]/10 px-3 py-1 text-xs font-medium text-[var(--brand)] mb-2">{post.category}</span>
           <time className="block text-xs text-muted-foreground mb-2" dateTime={post.date}>
             {format(new Date(post.date), "MMMM d, yyyy")}
           </time>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-6">{post.title}</h1>
-          <div
-            dangerouslySetInnerHTML={{ __html: marked.parse(post.body) }}
-          />
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-3">{post.title}</h1>
+          <p className="text-sm text-muted-foreground mb-6">By {post.author}</p>
+          <div dangerouslySetInnerHTML={{ __html: marked.parse(post.body) }} />
         </article>
       </main>
     </div>

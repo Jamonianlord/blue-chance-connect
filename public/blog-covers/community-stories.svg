@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5F7AE9"/>
+      <stop offset="100%" stop-color="#325FDC"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(420, 170)" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="90" r="70" fill="white" fill-opacity="0.1" stroke="white" stroke-width="5"/>
+    <circle cx="90" cy="60" r="18" fill="white" fill-opacity="0.2" stroke="white" stroke-width="3"/>
+    <circle cx="270" cy="60" r="18" fill="white" fill-opacity="0.2" stroke="white" stroke-width="3"/>
+    <circle cx="135" cy="120" r="18" fill="white" fill-opacity="0.2" stroke="white" stroke-width="3"/>
+    <circle cx="225" cy="120" r="18" fill="white" fill-opacity="0.2" stroke="white" stroke-width="3"/>
+    <circle cx="180" cy="170" r="12" fill="white" fill-opacity="0.15" stroke="white" stroke-width="3"/>
+    <line x1="108" y1="72" x2="150" y2="108" stroke="white" stroke-width="3"/>
+    <line x1="252" y1="72" x2="210" y2="108" stroke="white" stroke-width="3"/>
+    <line x1="180" y1="138" x2="180" y2="158" stroke="white" stroke-width="3"/>
+    <line x1="150" y1="108" x2="210" y2="108" stroke="white" stroke-width="3"/>
+  </g>
+</svg>

@@ -5,92 +5,98 @@ export type BlogPost = {
   body: string;
   date: string;
   coverImage: string;
+  author: string;
+  category: string;
 };
 
 export const blogPosts: BlogPost[] = [
   {
-    title: "How to Start a Conversation With a Stranger Online",
-    slug: "how-to-start-a-conversation-with-a-stranger-online",
-    excerpt: "Skip the generic 'hey' and open with something specific — a reaction to their profile, a genuine question, or just naming the moment. The best openers are honest, not rehearsed.",
-    body: `Starting a conversation with someone you've never met can feel awkward at first — but with the right approach, it's one of the easiest and most rewarding parts of meeting new people online.
+    title: "Why We Built 1Chance Around One Match at a Time",
+    slug: "why-we-built-1chance-around-one-match-at-a-time",
+    excerpt: "No feeds. No endless swiping. Just one conversation at a time \u2014 here\u2019s why we designed it that way.",
+    body: `Most apps today treat meeting people like a shopping experience: scroll through options, compare profiles, make a quick decision, move on. The problem is that approach doesn\u2019t actually lead to better conversations \u2014 it leads to decision fatigue.
 
-## Why the First Message Matters
+When you design for browsing, you encourage performance. People start curating their profiles, timing their messages, and treating each match like a transaction rather than a human being. The pressure to make the right choice from a lineup of strangers kills spontaneity.
 
-The first message sets the tone for everything that follows. A generic "hey" or "hi" rarely gets a memorable response, because it doesn't give the other person anything to respond to. The best openers give the conversation somewhere to go immediately.
+1Chance was built around a different premise: the best conversations happen when you skip the performance entirely. By showing you one person at a time with no profile to judge beforehand, we remove the incentive to overthink or rehearse. You just show up, say hello, and see where it goes.
 
-## Conversation Starters That Actually Work
+That single-match model also keeps the experience lightweight. There\u2019s no backlog of unmatched conversations, no guilt about ignoring someone, and no endless scroll that turns meeting people into a chore. You chat, you part ways if it\u2019s not clicking, and you can try again instantly \u2014 zero friction, zero pressure.
 
-Some of the strongest openers are the simplest: react to something specific, ask a genuine question, or just name the moment you're in ("so, random chat app, huh?"). Humor works well when it feels natural rather than rehearsed. Questions that can't be answered with just "yes" or "no" tend to keep things moving — instead of "do you like music," try "what's a song you've had on repeat lately."
-
-## What to Avoid
-
-Copy-pasted lines are easy to spot, and most people can tell the difference between a genuine question and a line used on everyone else. Oversharing too early can also feel like a lot before any real rapport exists — let things build naturally instead of front-loading your whole life story in the first few messages.
-
-## Keeping the Conversation Going
-
-Once it's rolling, keep early messages short and let the conversation breathe. You don't need to fill every silence, and a conversation that has natural pauses often feels more real than one that's constantly rushed.
-
-## When It's Not Clicking, That's Okay
-
-Not every match needs to become a deep conversation, and that's completely fine. That's exactly why platforms like 1Chance let you start fresh with one click — there's no pressure to force something that isn't flowing. The goal isn't a perfect opener. It's just showing up as yourself, and letting the conversation go wherever it goes.`,
-    date: "2026-07-15",
-    coverImage: "/blog-covers/conversation.svg",
+It\u2019s not about limiting choice for the sake of it. It\u2019s about removing the parts of online meeting that feel like work, so the only thing left is the conversation itself.`,
+    date: "2026-08-03",
+    coverImage: "/blog-covers/product-updates.svg",
+    author: "1Chance Team",
+    category: "Product Updates",
   },
   {
-    title: "Is It Safe to Chat With Strangers Online? What to Know",
-    slug: "is-it-safe-to-chat-with-strangers-online",
-    excerpt: "Meeting new people online is normal now — but it's worth being intentional about staying safe. A few simple habits go a long way: never share financial details, trust your gut, and use platforms with built-in safety.",
-    body: `Meeting new people online is completely normal now — but it's worth being intentional about staying safe while doing it, especially with someone you've just met.
+    title: "Staying Safe While Meeting Strangers Online",
+    slug: "staying-safe-while-meeting-strangers-online",
+    excerpt: "Anonymous chat can be freeing \u2014 here\u2019s how to keep it that way safely.",
+    body: `Meeting new people online opens up genuine connection, but it comes with real responsibilities. The good news is that staying safe doesn\u2019t require paranoia \u2014 just a few simple habits.
 
-## The Real Risks of Talking to Strangers Online
+Never share personal or financial information early. Your home address, bank details, and even your full name don\u2019t need to come up in the first conversation, no matter how comfortable things feel. Legitimate connections can wait until trust is built.
 
-Most risks in online chatting come down to a small number of patterns: someone asking for money or financial details, someone pushing to move to another platform too quickly, or someone pressuring you after you've said no. Being aware of these patterns in advance makes them much easier to spot early.
+Use the tools the platform gives you. In-app block and report features exist for a reason. If someone is pushing boundaries, making you uncomfortable, or asking for things you\u2019re not ready to give, you don\u2019t owe them an explanation. Block and move on \u2014 your safety isn\u2019t negotiable.
 
-## Simple Habits That Keep You Safe
+Trust your instincts. If a conversation feels scripted, pressured, or just off, that feeling is worth listening to. Intuition is your brain noticing patterns before your conscious mind can name them. Acting on it early prevents bigger problems later.
 
-Never share financial details, passwords, or your home address with someone you've just matched with — no matter how the conversation is going or how trustworthy it feels. Keep early conversations on the platform you met on rather than jumping to personal numbers or other apps right away. And pace things at whatever speed feels comfortable to you, not whatever speed the other person is pushing for.
-
-## Red Flags to Watch For
-
-A few signals worth paying attention to: requests for money or gifts, pressure to share explicit content, refusal to accept "no" as an answer, or a conversation that feels scripted rather than responsive to what you're actually saying. None of these require a lengthy explanation before you act — you don't owe anyone justification before you block or leave.
-
-## What Good Platforms Do Differently
-
-The best platforms for meeting new people build safety into the product itself, not as an afterthought. That means staying anonymous by default until you choose to share more, one-tap reporting and blocking that's actually easy to find, and no permanent public trace of your conversations sitting around indefinitely. That's the design philosophy behind 1Chance: anonymous by default, in your control always, and safety features that are visible on the page — not buried three menus deep in settings.
-
-## Trust Your Gut
-
-If something feels off, that feeling is worth listening to. You don't need a perfect explanation to justify ending a conversation — trusting your instinct is, on its own, a completely valid reason to block or move on.`,
-    date: "2026-07-22",
-    coverImage: "/blog-covers/safety.svg",
-  },
-  {
-    title: "Best Free Apps to Meet New People in 2026",
-    slug: "best-free-apps-to-meet-new-people",
-    excerpt: "Not every app for meeting people has to be a dating app. Look for platforms that get you talking quickly, let you stay anonymous until comfortable, and have safety built in from the start.",
-    body: `Not every app for meeting people has to be a dating app — some of the best options today focus purely on connection and conversation, with no swiping or profile-building required.
-
-## What to Look for in a People-Meeting App
-
-The biggest factor is friction: how much does the app ask of you before you can actually talk to someone? Apps that require building out a detailed profile before you can message anyone tend to filter out spontaneity — you end up curating an image of yourself before you've even had a conversation.
-
-## Instant-Connection Apps vs Traditional Dating Apps
-
-Traditional dating apps are built around browsing — swiping through profiles, judging photos, deciding based on a bio before any real conversation happens. Instant-connection apps flip that: you talk first, and everything else (if anything) comes later. This tends to produce more genuine early conversations, since there's less performance involved from the start.
-
-## Features That Actually Matter
-
-A few things worth checking before you commit time to any app: how quickly can you actually start talking to someone? Is there a way to skip a conversation that isn't going anywhere, without awkwardness? And critically — how does the app handle safety?
-
-## Why Anonymity and Safety Come First
-
-The apps worth using treat anonymity as a feature, not a limitation — letting you stay unidentified until you choose to share more, rather than forcing your name and photo on display from message one. Easy-to-find reporting and blocking tools matter just as much; if safety features are buried or hard to find, that's a sign the app wasn't built with your comfort in mind.
-
-## Our Pick
-
-1Chance was built around exactly this philosophy: one click, an instant match with someone new, and a real conversation — with anonymity and safety built in from the start rather than added on afterward. If you're looking for something lighter than a dating app but more genuine than a group chat, it's worth trying.`,
+Keep initial conversations on the platform. Moving to other apps or sharing phone numbers too quickly removes the safety net of in-app reporting and anonymity. Good platforms design protection into the experience \u2014 1Chance keeps you anonymous by default so you control exactly what you share and when.`,
     date: "2026-07-29",
-    coverImage: "/blog-covers/connection.svg",
+    coverImage: "/blog-covers/safety-tips.svg",
+    author: "Safety Team",
+    category: "Safety Tips",
+  },
+  {
+    title: "Why Talking to a Stranger Beats Swiping Through Profiles",
+    slug: "why-talking-to-a-stranger-beats-swiping-through-profiles",
+    excerpt: "Curated profiles create pressure. Random connection creates honesty.",
+    body: `There\u2019s a reason so many people find dating apps exhausting. Swiping through curated profiles turns meeting people into an evaluation exercise \u2014 you\u2019re judging a bio and a photo before you\u2019ve even said hello. That process doesn\u2019t just filter for good matches; it filters for people who are good at presenting themselves, which is a very different thing.
+
+The pressure of a profile creates performative behavior. People write bios they think will attract matches rather than bios that reflect who they actually are. First messages become rehearsed openers rather than genuine curiosity. The whole system rewards performance over personality.
+
+Random chat flips that dynamic completely. When there\u2019s no profile to judge, no bio to craft, and no reputation to maintain, people tend to be more honest in their first messages. You\u2019re not performing for an audience \u2014 you\u2019re just talking to another person. That\u2019s where real connection starts.
+
+1Chance\u2019s one-match-at-a-time model removes the performance entirely. You don\u2019t build a profile, you don\u2019t swipe, and you don\u2019t accumulate matches like collectibles. You just talk. The conversations that emerge from that approach tend to be more authentic from the very first message.`,
+    date: "2026-07-22",
+    coverImage: "/blog-covers/dating-connection.svg",
+    author: "Community Team",
+    category: "Dating & Connection",
+  },
+  {
+    title: "The Conversations Happening on 1Chance Right Now",
+    slug: "the-conversations-happening-on-1chance-right-now",
+    excerpt: "From late-night chats to new friendships \u2014 a look at what\u2019s actually happening on the app.",
+    body: `Every match on 1Chance starts with a single click and leads somewhere unpredictable. That\u2019s the design. What happens next is entirely up to the people on either end of the conversation.
+
+Late-night conversations tend to dominate the early match window. People are more relaxed after hours, less guarded, and more willing to talk about things that don\u2019t fit into a quick bio. Music recommendations, travel stories, random observations about the day \u2014 the small stuff that becomes meaningful when you\u2019re actually paying attention.
+
+Friendship conversations happen too. Not every match turns romantic, and that\u2019s by design. A lot of people use 1Chance just to talk \u2014 to practice a language, to vent about work, or to hear about someone else\u2019s life in a different city or country. Those connections are just as real as any other.
+
+The range of conversations the random-match model enables is what makes it work. Without the expectation of dating hanging over every interaction, people relax into being themselves. And that\u2019s when the interesting stuff happens \u2014 late-night philosophy debates, sudden shared obsessions, or just two people laughing at the same weird thing for twenty minutes.
+
+That\u2019s what 1Chance is built for: moments of real connection, however they show up.`,
+    date: "2026-07-15",
+    coverImage: "/blog-covers/community-stories.svg",
+    author: "Community Team",
+    category: "Community Stories",
+  },
+  {
+    title: "Building 1Chance: What\u2019s Next on Our Roadmap",
+    slug: "building-1chance-whats-next-on-our-roadmap",
+    excerpt: "A look at what we\u2019re building next \u2014 friend requests, voice notes, and more.",
+    body: `We shipped a lot over the past few months. Friend requests and direct chats let people move from a random match to a real ongoing connection. Voice notes added a new dimension to conversations \u2014 hearing someone\u2019s tone, their laugh, the pauses between thoughts, makes text chat feel a lot more human. Unread badges and notification improvements made it easier to keep up with conversations without feeling overwhelmed.
+
+None of that happened by accident. Every feature we ship comes from watching how people actually use 1Chance. We look at where conversations stall, where people ask for things we haven\u2019t built yet, and where the experience feels frictionless in a good way. That feedback loop is the roadmap.
+
+Right now we\u2019re exploring a few directions. Group chats for people who meet through mutual matches. Better onboarding that helps new users understand the one-match model before their first conversation. And deeper safety tools that make reporting and blocking even more seamless.
+
+The goal isn\u2019t to add features for the sake of it. It\u2019s to make 1Chance feel more like a natural extension of how people already connect \u2014 low friction, high authenticity, and safety built in from the start rather than bolted on later.
+
+We\u2019re a small team, but we ship fast because we listen closely. If there\u2019s something you\u2019d like to see, the best way to make it happen is to use the app, have conversations, and tell us what works and what doesn\u2019t.`,
+    date: "2026-07-08",
+    coverImage: "/blog-covers/behind-scenes.svg",
+    author: "1Chance Team",
+    category: "Behind the Scenes",
   },
 ];
 
@@ -103,3 +109,10 @@ export function getAllBlogPosts(): BlogPost[] {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 }
+
+export function getPostsByCategory(category: string): BlogPost[] {
+  if (category === "All") return getAllBlogPosts();
+  return getAllBlogPosts().filter((post) => post.category === category);
+}
+
+export const categories = ["All", "Product Updates", "Safety Tips", "Dating & Connection", "Community Stories", "Behind the Scenes"];
