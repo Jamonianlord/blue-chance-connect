@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
-import lamejs from "lamejs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -100,35 +99,39 @@ function msgIsFromMe(msg: Message, userId: string | null): boolean {
   return msg.sender_id === userId;
 }
 
-function encodeToMp3(chunks: Float32Array[], sampleRate: number): Blob {
-  const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
-  const maxSamples = 1152;
-  const merged = new Float32Array(chunks.reduce((sum, c) => sum + c.length, 0));
-  let offset = 0;
+function encodeToWav(chunks: Float32Array[], sampleRate: number): Blob {
+  const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
+  const buffer = new ArrayBuffer(44 + totalLength * 2);
+  const view = new DataView(buffer);
+
+  function writeString(offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + totalLength * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, totalLength * 2, true);
+
+  let offset = 44;
   for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  let offset2 = 0;
-  while (offset2 < merged.length) {
-    const sampleChunk = merged.subarray(offset2, offset2 + maxSamples);
-    if (sampleChunk.length === maxSamples) {
-      const intData: number[] = [];
-      for (let i = 0; i < sampleChunk.length; i++) {
-        intData.push(Math.max(-1, Math.min(1, sampleChunk[i]!)) * 0x7fff);
-      }
-      const sample = new Int16Array(intData);
-      const block = mp3Encoder.encodeBuffer(sample);
-      for (let i = 0; i < block.length; i++) {
-        mp3Encoder.buffer.push(block[i]!);
-      }
+    for (let i = 0; i < chunk.length; i++) {
+      const s = Math.max(-1, Math.min(1, chunk[i]!));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      offset += 2;
     }
-    offset2 += maxSamples;
   }
 
-  const mp3Data = mp3Encoder.flush();
-  return new Blob([new Uint8Array(mp3Data)], { type: "audio/mpeg" });
+  return new Blob([buffer], { type: 'audio/wav' });
 }
 
 function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; durationSeconds: number; mine: boolean }) {
@@ -172,7 +175,7 @@ function AudioPlayer({ audioUrl, durationSeconds, mine }: { audioUrl: string; du
    return (
     <div className="flex items-center gap-2 px-1">
       <audio ref={audioRef} onEnded={handleEnded}>
-        <source src={audioSrc} type="audio/mpeg" />
+        <source src={audioSrc} type="audio/wav" />
       </audio>
       <Button
         variant="ghost"
@@ -223,7 +226,7 @@ function ChatPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const audioWorkletRef = useRef<AudioWorkletNode | null>(null);
+  const isRecordingRef = useRef(false);
   const pcmChunksRef = useRef<Float32Array[]>([]);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingStartRef = useRef<number>(0);
@@ -500,8 +503,10 @@ const send = async () => {
     const stream = streamRef.current;
     const audioContext = audioContextRef.current;
     const source = sourceNodeRef.current;
+    const sampleRate = audioContext.sampleRate;
 
     setRecording(false);
+    isRecordingRef.current = false;
 
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
@@ -521,31 +526,31 @@ const send = async () => {
     const durationSeconds = Math.round(durationMs / 1000);
 
     if (pcmChunksRef.current.length === 0) {
-      setRecording(false);
       setRecordingTime(0);
       return;
     }
 
-    const mp3Blob = encodeToMp3(pcmChunksRef.current, audioContext.sampleRate);
+    const chunks = pcmChunksRef.current;
     pcmChunksRef.current = [];
-
-    if (mp3Blob.size === 0) {
-      toast.error("Recording failed — try again");
-      setRecording(false);
-      setRecordingTime(0);
-      return;
-    }
-
     const tempId = crypto.randomUUID();
-    setUploading(true);
-    setMessages((cur) => [
-      ...cur,
-      { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
-    ]);
 
     try {
-      const path = `${chatId}/${user.id}-${Date.now()}.mp3`;
-      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, mp3Blob, { contentType: "audio/mpeg" });
+      const wavBlob = encodeToWav(chunks, sampleRate);
+
+      if (wavBlob.size === 0) {
+        toast.error("Recording failed — try again");
+        setRecordingTime(0);
+        return;
+      }
+
+      setUploading(true);
+      setMessages((cur) => [
+        ...cur,
+        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
+      ]);
+
+      const path = `${chatId}/${user.id}-${Date.now()}.wav`;
+      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, wavBlob, { contentType: "audio/wav" });
       if (upErr) throw upErr;
 
       const { data, error } = await supabase
@@ -557,8 +562,8 @@ const send = async () => {
 
       setMessages((cur) => cur.map((m) => (m.id === tempId ? (data as Message) : m)));
     } catch (e) {
-      console.error("[chat] audio upload error", e);
-      const msg = e instanceof Error ? e.message : "Upload failed";
+      console.error("[chat] audio record/encode/upload error", e);
+      const msg = e instanceof Error ? e.message : "Failed to send voice note";
       toast.error(msg);
       setMessages((cur) => cur.filter((m) => m.id !== tempId));
     } finally {
@@ -583,6 +588,10 @@ const send = async () => {
       const audioContext = new AudioContext({ sampleRate: 44100 });
       audioContextRef.current = audioContext;
 
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
       const source = audioContext.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
 
@@ -593,8 +602,10 @@ const send = async () => {
       const channelCount = source.channelCount || 1;
       const recorder = audioContext.createScriptProcessor(bufferSize, channelCount, channelCount);
 
+      isRecordingRef.current = true;
+
       recorder.onaudioprocess = (e) => {
-        if (!recording) return;
+        if (!isRecordingRef.current) return;
         for (let ch = 0; ch < channelCount; ch++) {
           const input = e.inputBuffer.getChannelData(ch);
           pcmChunksRef.current.push(new Float32Array(input));
