@@ -217,13 +217,14 @@ const parsed = signupSchema.safeParse({
                   </Link>
                 )}
               </div>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+              <Input id="password" type="password" className="auth-input" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <Button
               type="submit"
               disabled={loading || (mode === "signup" && !termsAccepted)}
-              className="brand-gradient h-11 w-full rounded-full text-base font-semibold text-white hover:opacity-95"
+              className="auth-submit h-11 w-full rounded-full bg-[var(--brand)] text-base font-semibold text-[var(--brand-foreground)] shadow-none hover:bg-[var(--brand)]/90 hover:scale-100"
             >
+
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account & start chatting" : "Sign in"}
             </Button>
           </form>
