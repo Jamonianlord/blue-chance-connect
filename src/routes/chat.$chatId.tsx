@@ -783,6 +783,10 @@ const send = async () => {
   const onRecordingPointerMove = (e: React.PointerEvent) => {
     const x = e.clientX - (e.target as HTMLElement).getBoundingClientRect().left;
     recordingDragXRef.current = x;
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
   };
 
   const onRecordingPointerUp = (e: React.PointerEvent) => {
@@ -795,7 +799,7 @@ const send = async () => {
     stopRecordingAndUpload();
   };
 
-  const openContextMenu = (e: React.MouseEvent, messageId: string) => {
+  const openContextMenu = (e: React.MouseEvent | React.PointerEvent, messageId: string) => {
     e.preventDefault();
     setContextMenuId(messageId);
     setContextMenuX(e.clientX);
@@ -1147,20 +1151,21 @@ const send = async () => {
                        ? "rounded-3xl rounded-br-md bg-[var(--brand)] text-white"
                        : "rounded-3xl rounded-bl-md border border-border bg-card text-card-foreground")
                    }
-                   onContextMenu={isText && mine ? (e) => openContextMenu(e, m.id) : undefined}
-                   onPointerDown={isText && mine ? (e) => {
-                     if (e.button === 0) {
-                       longPressTimerRef.current = setTimeout(() => {
-                         openContextMenu(e as unknown as React.MouseEvent, m.id);
-                       }, 500);
-                     }
-                   } : undefined}
-                   onPointerUp={isText && mine ? () => {
-                     if (longPressTimerRef.current) {
-                       clearTimeout(longPressTimerRef.current);
-                       longPressTimerRef.current = null;
-                     }
-                   } : undefined}
+onContextMenu={isText && mine ? (e) => { e.preventDefault(); openContextMenu(e, m.id); } : (e) => { e.preventDefault(); }}
+                    onPointerDown={isText && mine ? (e) => {
+                      if (e.button === 0) {
+                        e.preventDefault();
+                        longPressTimerRef.current = setTimeout(() => {
+                          openContextMenu(e, m.id);
+                        }, 500);
+                      }
+                    } : undefined}
+                    onPointerUp={isText && mine ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current);
+                        longPressTimerRef.current = null;
+                      }
+                    } : undefined}
                     onPointerLeave={isText && mine ? () => {
                       if (longPressTimerRef.current) {
                         clearTimeout(longPressTimerRef.current);
