@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export const Route = createFileRoute("/__vn-test")({ component: Harness });
+export const Route = createFileRoute("/vn-test")({ component: Harness });
 
 // Mirror of VoiceNoteBubble's playback UI (temporary visual test harness).
 function Harness() {
