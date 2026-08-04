@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VnTestRouteImport } from './routes/vn-test'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SafetyRouteImport } from './routes/safety'
@@ -27,11 +26,6 @@ import { Route as GroupsGroupIdRouteImport } from './routes/groups/$groupId'
 import { Route as ChatChatIdRouteImport } from './routes/chat.$chatId'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
-const VnTestRoute = VnTestRouteImport.update({
-  id: '/vn-test',
-  path: '/vn-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -125,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/safety': typeof SafetyRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/vn-test': typeof VnTestRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
@@ -144,7 +137,6 @@ export interface FileRoutesByTo {
   '/safety': typeof SafetyRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/vn-test': typeof VnTestRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
@@ -164,7 +156,6 @@ export interface FileRoutesById {
   '/safety': typeof SafetyRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/vn-test': typeof VnTestRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/groups/$groupId': typeof GroupsGroupIdRoute
@@ -185,7 +176,6 @@ export interface FileRouteTypes {
     | '/safety'
     | '/support'
     | '/terms'
-    | '/vn-test'
     | '/blog/$slug'
     | '/chat/$chatId'
     | '/groups/$groupId'
@@ -204,7 +194,6 @@ export interface FileRouteTypes {
     | '/safety'
     | '/support'
     | '/terms'
-    | '/vn-test'
     | '/blog/$slug'
     | '/chat/$chatId'
     | '/groups/$groupId'
@@ -223,7 +212,6 @@ export interface FileRouteTypes {
     | '/safety'
     | '/support'
     | '/terms'
-    | '/vn-test'
     | '/blog/$slug'
     | '/chat/$chatId'
     | '/groups/$groupId'
@@ -243,7 +231,6 @@ export interface RootRouteChildren {
   SafetyRoute: typeof SafetyRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
-  VnTestRoute: typeof VnTestRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ChatChatIdRoute: typeof ChatChatIdRoute
   GroupsGroupIdRoute: typeof GroupsGroupIdRoute
@@ -253,13 +240,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vn-test': {
-      id: '/vn-test'
-      path: '/vn-test'
-      fullPath: '/vn-test'
-      preLoaderRoute: typeof VnTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -387,7 +367,6 @@ const rootRouteChildren: RootRouteChildren = {
   SafetyRoute: SafetyRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
-  VnTestRoute: VnTestRoute,
   BlogSlugRoute: BlogSlugRoute,
   ChatChatIdRoute: ChatChatIdRoute,
   GroupsGroupIdRoute: GroupsGroupIdRoute,
