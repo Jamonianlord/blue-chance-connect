@@ -1327,6 +1327,7 @@ onContextMenu={mine ? (e) => { e.preventDefault(); openContextMenu(e, m.id); } :
               </Button>
               <div className="relative">
                 <Button
+                  id="btn-game-picker"
                   type="button"
                   onClick={() => setShowGamePicker((o) => !o)}
                   disabled={uploading || ended}

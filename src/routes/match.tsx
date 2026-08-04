@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Header } from "@/components/Header";
-import { OnboardingTour } from "@/components/OnboardingTour";
+import { FirstTimeTour } from "@/components/FirstTimeTour";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -259,7 +259,7 @@ function MatchPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <OnboardingTour />
+      <FirstTimeTour />
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-lg flex-col items-center justify-center px-4 py-12">
         {!searching ? (
           <div className="w-full rounded-3xl border border-border bg-card p-8 shadow-xl">
@@ -278,6 +278,7 @@ function MatchPage() {
               ))}
             </RadioGroup>
             <Button
+              id="btn-find-match"
               onClick={startSearch}
               className="brand-gradient brand-glow btn-pop mt-6 h-12 w-full rounded-full text-base font-semibold text-white hover:opacity-95"
             >
