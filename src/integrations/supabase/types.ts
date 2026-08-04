@@ -149,27 +149,39 @@ export type Database = {
       }
       messages: {
         Row: {
+          audio_url: string | null
           chat_id: string
           content: string | null
           created_at: string
+          duration_seconds: number | null
+          game_id: string | null
           id: string
           image_url: string | null
+          message_type: string
           sender_id: string
         }
         Insert: {
+          audio_url?: string | null
           chat_id: string
           content?: string | null
           created_at?: string
+          duration_seconds?: number | null
+          game_id?: string | null
           id?: string
           image_url?: string | null
+          message_type?: string
           sender_id: string
         }
         Update: {
+          audio_url?: string | null
           chat_id?: string
           content?: string | null
           created_at?: string
+          duration_seconds?: number | null
+          game_id?: string | null
           id?: string
           image_url?: string | null
+          message_type?: string
           sender_id?: string
         }
         Relationships: [
@@ -178,6 +190,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "chat_games"
             referencedColumns: ["id"]
           },
         ]
