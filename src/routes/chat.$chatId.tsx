@@ -1151,8 +1151,8 @@ const send = async () => {
                        ? "rounded-3xl rounded-br-md bg-[var(--brand)] text-white"
                        : "rounded-3xl rounded-bl-md border border-border bg-card text-card-foreground")
                    }
-onContextMenu={isText && mine ? (e) => { e.preventDefault(); openContextMenu(e, m.id); } : (e) => { e.preventDefault(); }}
-                    onPointerDown={isText && mine ? (e) => {
+onContextMenu={mine ? (e) => { e.preventDefault(); openContextMenu(e, m.id); } : undefined}
+                    onPointerDown={mine ? (e) => {
                       if (e.button === 0) {
                         e.preventDefault();
                         longPressTimerRef.current = setTimeout(() => {
@@ -1160,13 +1160,13 @@ onContextMenu={isText && mine ? (e) => { e.preventDefault(); openContextMenu(e, 
                         }, 500);
                       }
                     } : undefined}
-                    onPointerUp={isText && mine ? () => {
+                    onPointerUp={mine ? () => {
                       if (longPressTimerRef.current) {
                         clearTimeout(longPressTimerRef.current);
                         longPressTimerRef.current = null;
                       }
                     } : undefined}
-                    onPointerLeave={isText && mine ? () => {
+                    onPointerLeave={mine ? () => {
                       if (longPressTimerRef.current) {
                         clearTimeout(longPressTimerRef.current);
                         longPressTimerRef.current = null;
@@ -1403,35 +1403,37 @@ onContextMenu={isText && mine ? (e) => { e.preventDefault(); openContextMenu(e, 
          </div>
        )}
 
-       {contextMenuId && (
-         <div
-           className="fixed z-[60] rounded-lg border border-border bg-card shadow-lg py-1 min-w-[140px]"
-           style={{ left: contextMenuX, top: contextMenuY }}
-           onClick={(e) => e.stopPropagation()}
-         >
-           <button
-             type="button"
-             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
-             onClick={() => {
-               const msg = messages.find((m) => m.id === contextMenuId);
-               if (msg && msg.content) handleEdit(msg.id, msg.content);
-             }}
-           >
-             <Pencil className="h-3.5 w-3.5" />
-             Edit
-           </button>
-           <button
-             type="button"
-             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
-             onClick={() => {
-               handleDelete(contextMenuId!);
-             }}
-           >
-             <Trash className="h-3.5 w-3.5" />
-             Delete
-           </button>
-         </div>
-       )}
+{contextMenuId && (
+          <div
+            className="fixed z-[60] rounded-lg border border-border bg-card shadow-lg py-1 min-w-[140px]"
+            style={{ left: contextMenuX, top: contextMenuY }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
+              onClick={() => {
+                const msg = messages.find((m) => m.id === contextMenuId);
+                if (msg && msg.message_type === "text" && msg.content) {
+                  handleEdit(msg.id, msg.content);
+                }
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
+              onClick={() => {
+                handleDelete(contextMenuId!);
+              }}
+            >
+              <Trash className="h-3.5 w-3.5" />
+              Delete
+            </button>
+          </div>
+        )}
      </div>
    );
  }
