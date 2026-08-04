@@ -138,10 +138,17 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
   const [playing, setPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [elapsed, setElapsed] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const waveformRef = useRef<number[]>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const timeRef = useRef<HTMLSpanElement>(null);
+  const rafRef = useRef<number | null>(null);
+
+  // Waveform bars: computed once per message, never on render ticks.
+  const bars = useMemo(() => {
+    const seed = messageId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return Array.from({ length: 24 }, (_, i) => ((seed * (i + 1) * 7) % 100) / 100);
+  }, [messageId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,15 +168,6 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
   }, [audioUrl]);
 
   useEffect(() => {
-    const seed = messageId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const bars: number[] = [];
-    for (let i = 0; i < 24; i++) {
-      bars.push(((seed * (i + 1) * 7) % 100) / 100);
-    }
-    waveformRef.current = bars;
-  }, [messageId]);
-
-  useEffect(() => {
     if (playing && audioRef.current) {
       audioRef.current.play().catch(() => setPlaying(false));
     } else if (audioRef.current) {
@@ -177,17 +175,37 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
     }
   }, [playing]);
 
+  // Continuous progress is driven imperatively — no state, no re-renders.
   useEffect(() => {
-    if (playing) {
-      progressInterval.current = setInterval(() => {
-        setElapsed((t) => t + 100);
-      }, 100);
-    } else {
-      if (progressInterval.current) clearInterval(progressInterval.current);
-      progressInterval.current = null;
+    const paint = (ratio: number, remaining: number) => {
+      const width = trackRef.current?.clientWidth ?? 0;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${ratio * width}px, 0, 0)`;
+        cursorRef.current.style.opacity = playing ? "1" : "0";
+      }
+      if (timeRef.current) timeRef.current.textContent = formatTime(remaining);
+    };
+
+    if (!playing) {
+      paint(0, durationSeconds);
+      return;
     }
-    return () => { if (progressInterval.current) clearInterval(progressInterval.current); };
-  }, [playing]);
+
+    const tick = () => {
+      const a = audioRef.current;
+      if (a) {
+        const total = durationSeconds > 0 ? durationSeconds : a.duration || 0;
+        const ratio = total > 0 ? Math.min(1, a.currentTime / total) : 0;
+        paint(ratio, Math.max(0, total - a.currentTime));
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [playing, durationSeconds]);
 
   const togglePlay = () => {
     if (loading || !audioSrc) return;
@@ -195,12 +213,9 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
   };
 
   const handleEnded = () => {
+    if (audioRef.current) audioRef.current.currentTime = 0;
     setPlaying(false);
-    setElapsed(0);
   };
-
-  const bars = waveformRef.current;
-  const progress = durationSeconds > 0 ? Math.min(1, elapsed / (durationSeconds * 1000)) : 0;
 
   return (
     <div className="flex items-center gap-2 px-1">
@@ -215,11 +230,11 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
       </Button>
-      <div className="relative flex items-center gap-[2px] h-6 flex-1 overflow-hidden" aria-hidden="true">
+      <div ref={trackRef} className="relative flex items-center gap-[2px] h-6 flex-1 overflow-hidden" aria-hidden="true">
         {bars.map((h, i) => (
           <div
             key={i}
-            className="w-[2px] rounded-full transition-transform duration-150"
+            className="w-[2px] rounded-full"
             style={{
               height: `${Math.max(4, h * 100)}%`,
               backgroundColor: mine ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.3)",
@@ -228,22 +243,18 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
             }}
           />
         ))}
-        {playing && (
-          <div
-            className="absolute top-0 bottom-0 left-0 w-[2px] rounded-full bg-[var(--brand)]"
-            style={{
-              left: `${progress * 100}%`,
-              transform: "translateX(-50%)",
-            }}
-          />
-        )}
+        <div
+          ref={cursorRef}
+          className="pointer-events-none absolute top-0 bottom-0 left-0 w-[2px] rounded-full bg-[var(--brand)] opacity-0 will-change-transform"
+        />
       </div>
-      <span className="text-xs text-white/70 min-w-[50px] text-right tabular-nums">
-        {playing ? formatTime(Math.max(0, durationSeconds - elapsed / 1000)) : formatTime(durationSeconds)}
+      <span ref={timeRef} className="text-xs text-white/70 min-w-[50px] text-right tabular-nums">
+        {formatTime(durationSeconds)}
       </span>
     </div>
   );
 }
+
 
 function ChatPage() {
   const { chatId } = Route.useParams();
