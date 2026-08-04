@@ -32,6 +32,47 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_games: {
+        Row: {
+          chat_id: string
+          created_at: string
+          created_by: string
+          game_type: string
+          id: string
+          state: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          created_by: string
+          game_type: string
+          id?: string
+          state?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          created_by?: string
+          game_type?: string
+          id?: string
+          state?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_games_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           chat_type: Database["public"]["Enums"]["chat_type_enum"]
@@ -150,6 +191,7 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests: string[]
+          last_seen: string | null
           name: string
           terms_accepted_at: string | null
           updated_at: string
@@ -162,6 +204,7 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests?: string[]
+          last_seen?: string | null
           name: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -174,6 +217,7 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           interests?: string[]
+          last_seen?: string | null
           name?: string
           terms_accepted_at?: string | null
           updated_at?: string
