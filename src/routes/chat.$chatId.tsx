@@ -24,16 +24,20 @@ import {
   ArrowLeft,
   Ban,
   ChevronLeft,
+  Check,
   Flag,
   Send,
   SkipForward,
   Loader2,
   Paperclip,
+  Pencil,
+  Trash,
   X,
   UserPlus,
   Clock,
   Mic,
   MicOff,
+  MoreVertical,
   Play,
   Pause,
   Gamepad2,
@@ -68,6 +72,8 @@ type Message = {
   created_at: string;
   message_type: "text" | "game";
   game_id: string | null;
+  deleted_at: string | null;
+  edited_at: string | null;
 };
 
 type ChatRow = {
@@ -93,7 +99,7 @@ function formatDuration(startIso: string, endIso: string) {
 
 function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
@@ -248,7 +254,7 @@ function VoiceNoteBubble({ audioUrl, durationSeconds, mine, messageId }: { audio
           className="pointer-events-none absolute top-0 bottom-0 left-0 w-[2px] rounded-full bg-[var(--brand)] opacity-0 will-change-transform"
         />
       </div>
-      <span ref={timeRef} className="text-xs text-white/70 min-w-[50px] text-right tabular-nums">
+      <span ref={timeRef} className="text-xs text-white/70 w-[50px] text-right tabular-nums">
         {formatTime(durationSeconds)}
       </span>
     </div>
@@ -281,7 +287,13 @@ function ChatPage() {
   const [partnerLastSeen, setPartnerLastSeen] = useState<string | null>(null);
   const [gameStates, setGameStates] = useState<Record<string, Record<string, unknown>>>({});
   const [showGamePicker, setShowGamePicker] = useState(false);
+  const [contextMenuId, setContextMenuId] = useState<string | null>(null);
+  const [contextMenuX, setContextMenuX] = useState(0);
+  const [contextMenuY, setContextMenuY] = useState(0);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
   const gamePickerRef = useRef<HTMLDivElement>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const partnerOnline = partnerLastSeen ? new Date(partnerLastSeen).getTime() >= Date.now() - 90_000 : false;
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -490,11 +502,20 @@ const fetchChatAndMessages = async () => {
     return () => clearInterval(id);
   }, [partnerId]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, partnerTyping]);
+   useEffect(() => {
+     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+   }, [messages, partnerTyping]);
 
-  const ended = !!chat?.ended_at;
+   useEffect(() => {
+     if (!contextMenuId) return;
+     const handleKeyDown = (e: KeyboardEvent) => {
+       if (e.key === "Escape") setContextMenuId(null);
+     };
+     document.addEventListener("keydown", handleKeyDown);
+     return () => document.removeEventListener("keydown", handleKeyDown);
+   }, [contextMenuId]);
+
+   const ended = !!chat?.ended_at;
   const isFriendChat = chat?.chat_type === "friend";
 
 const send = async () => {
@@ -513,7 +534,9 @@ const send = async () => {
       duration_seconds: null,
       created_at: new Date().toISOString(),
       message_type: "text",
-      game_id: null,
+       game_id: null,
+      deleted_at: null,
+      edited_at: null,
     };
     setMessages((cur) => [...cur, optimisticMsg]);
     const { data, error } = await supabase
@@ -549,7 +572,7 @@ const send = async () => {
       const path = `${chatId}/${user.id}-${Date.now()}.${ext}`;
       setMessages((cur) => [
         ...cur,
-        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
+        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null, deleted_at: null, edited_at: null },
       ]);
       const { error: upErr } = await supabase.storage.from("chat-images").upload(path, file, { contentType: file.type });
       if (upErr) throw upErr;
@@ -621,7 +644,7 @@ const send = async () => {
       setUploading(true);
       setMessages((cur) => [
         ...cur,
-        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null },
+        { id: tempId, chat_id: chatId, sender_id: user.id, content: null, image_url: null, audio_url: null, duration_seconds: null, created_at: new Date().toISOString(), message_type: "text", game_id: null, deleted_at: null, edited_at: null },
       ]);
 
       const path = `${chatId}/${user.id}-${Date.now()}.mp3`;
@@ -770,6 +793,63 @@ const send = async () => {
     }
     recordingDragXRef.current = 0;
     stopRecordingAndUpload();
+  };
+
+  const openContextMenu = (e: React.MouseEvent, messageId: string) => {
+    e.preventDefault();
+    setContextMenuId(messageId);
+    setContextMenuX(e.clientX);
+    setContextMenuY(e.clientY);
+  };
+
+  const closeContextMenu = () => {
+    setContextMenuId(null);
+  };
+
+  const handleEdit = (messageId: string, currentContent: string) => {
+    setEditingMessageId(messageId);
+    setEditContent(currentContent);
+    closeContextMenu();
+  };
+
+  const handleSaveEdit = async (messageId: string) => {
+    if (!editContent.trim()) return;
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ content: editContent.trim(), edited_at: new Date().toISOString() })
+        .eq("id", messageId)
+        .eq("sender_id", user!.id);
+      if (error) throw error;
+      setMessages((cur) =>
+        cur.map((m) =>
+          m.id === messageId ? { ...m, content: editContent.trim(), edited_at: new Date().toISOString() } : m
+        )
+      );
+      setEditingMessageId(null);
+      setEditContent("");
+    } catch (e) {
+      toast.error("Failed to edit message");
+      console.error(e);
+    }
+  };
+
+  const handleDelete = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", messageId)
+        .eq("sender_id", user!.id);
+      if (error) throw error;
+      setMessages((cur) =>
+        cur.map((m) => (m.id === messageId ? { ...m, deleted_at: new Date().toISOString() } : m))
+      );
+      closeContextMenu();
+    } catch (e) {
+      toast.error("Failed to delete message");
+      console.error(e);
+    }
   };
 
   const onType = (v: string) => {
@@ -1040,76 +1120,150 @@ const send = async () => {
               Say hi 👋 — you have one chance to make it a great chat.
             </div>
           )}
-{messages.map((m, i) => {
-            const mine = m.sender_id === user!.id;
-            const isImage = !!m.image_url;
-            const isAudio = !!m.audio_url;
-            const prev = messages[i - 1];
-            const grouped = prev && prev.sender_id === m.sender_id;
-            return (
-              <div
-                key={m.id}
-                className={"flex animate-fade-in " + (mine ? "justify-end" : "justify-start") + (grouped ? " -mt-1.5" : "")}
-              >
-                <div
-                  className={
-                    "max-w-[78%] overflow-hidden text-[15px] leading-relaxed shadow-sm transition-colors " +
-                    (isImage ? "p-1 " : "px-4 py-2.5 ") +
-                    (mine
-                      ? "rounded-3xl rounded-br-md bg-[var(--brand)] text-white"
-                      : "rounded-3xl rounded-bl-md border border-border bg-card text-card-foreground")
-                  }
-                >
-                  {isImage ? (
-                    m.image_url ? (
-                      <SignedImage
-                        bucket="chat-images"
-                        path={m.image_url}
-                        alt="Shared image"
-                        className="block max-h-72 max-w-full cursor-pointer rounded-2xl"
-                        onClick={async () => {
-                          const { data } = await supabase.storage.from("chat-images").createSignedUrl(m.image_url!, 3600);
-                          if (data?.signedUrl) setLightbox(data.signedUrl);
-                        }}
-                      />
-                    ) : (
-                      <div className="flex h-40 w-40 items-center justify-center">
-                        <Loader2 className="h-5 w-5 animate-spin text-white/80" />
-                      </div>
-                    )
-                   ) : isAudio ? (
-                     <VoiceNoteBubble
-                       audioUrl={m.audio_url!}
-                       durationSeconds={m.duration_seconds ?? 0}
-                       mine={mine}
-                       messageId={m.id}
-                     />
-                  ) : (
-                    <div className="whitespace-pre-wrap break-words">{m.content}</div>
-                  )}
-                  {m.message_type === "game" && m.game_id && gameStates[m.game_id] && (
-                    <div className="mt-2">
-                      <GameCard
-                        gameType={(gameStates[m.game_id]?.game_type as GameType) || "dice"}
-                        state={gameStates[m.game_id]}
-                        currentUserId={user!.id}
-                        onMove={(newState) => updateGameState(m.game_id!, newState)}
-                      />
-                    </div>
-                  )}
-                  <div
-                    className={
-                      "text-[10px] font-normal tabular-nums " +
-                      (isImage || isAudio ? "px-2 pb-1 pt-1 " : "mt-0.5 ") +
-                      (mine ? "text-right text-white/60" : "text-right text-muted-foreground/70")
-                    }
+ {messages.map((m, i) => {
+             const mine = m.sender_id === user!.id;
+             const isImage = !!m.image_url;
+             const isAudio = !!m.audio_url;
+             const isDeleted = !!m.deleted_at;
+             const isEdited = !!m.edited_at;
+             const isText = m.message_type === "text" && !isImage && !isAudio;
+             const prev = messages[i - 1];
+             const grouped = prev && prev.sender_id === m.sender_id;
+             const isEditing = editingMessageId === m.id;
+             return (
+               <div
+                 key={m.id}
+                 className={"flex animate-fade-in " + (mine ? "justify-end" : "justify-start") + (grouped ? " -mt-1.5" : "")}
+               >
+                 <div
+                   className={
+                     "max-w-[78%] overflow-hidden text-[15px] leading-relaxed shadow-sm transition-colors " +
+                     (isDeleted
+                       ? "px-4 py-2.5 italic text-muted-foreground/50"
+                       : isImage
+                         ? "p-1 "
+                         : "px-4 py-2.5 ") +
+                     (mine
+                       ? "rounded-3xl rounded-br-md bg-[var(--brand)] text-white"
+                       : "rounded-3xl rounded-bl-md border border-border bg-card text-card-foreground")
+                   }
+                   onContextMenu={isText && mine ? (e) => openContextMenu(e, m.id) : undefined}
+                   onPointerDown={isText && mine ? (e) => {
+                     if (e.button === 0) {
+                       longPressTimerRef.current = setTimeout(() => {
+                         openContextMenu(e as unknown as React.MouseEvent, m.id);
+                       }, 500);
+                     }
+                   } : undefined}
+                   onPointerUp={isText && mine ? () => {
+                     if (longPressTimerRef.current) {
+                       clearTimeout(longPressTimerRef.current);
+                       longPressTimerRef.current = null;
+                     }
+                   } : undefined}
+                    onPointerLeave={isText && mine ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current);
+                        longPressTimerRef.current = null;
+                      }
+                    } : undefined}
+                    onClick={() => setContextMenuId(null)}
                   >
-                    {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                   {isDeleted ? (
+                     <span>This message was deleted</span>
+                   ) : isEditing ? (
+                     <div className="flex flex-col gap-2">
+                       <Input
+                         value={editContent}
+                         onChange={(e) => setEditContent(e.target.value)}
+                         onKeyDown={(e) => {
+                           if (e.key === "Enter" && !e.shiftKey) {
+                             e.preventDefault();
+                             handleSaveEdit(m.id);
+                           }
+                           if (e.key === "Escape") {
+                             setEditingMessageId(null);
+                             setEditContent("");
+                           }
+                         }}
+                         className="h-10 rounded-lg border border-input bg-transparent px-3 text-[15px] shadow-none focus-visible:ring-0"
+                         maxLength={2000}
+                         autoFocus
+                       />
+                       <div className="flex justify-end gap-2">
+                         <Button
+                           type="button"
+                           variant="ghost"
+                           size="sm"
+                           className="h-7 text-xs text-white/70 hover:text-white"
+                           onClick={() => {
+                             setEditingMessageId(null);
+                             setEditContent("");
+                           }}
+                         >
+                           Cancel
+                         </Button>
+                         <Button
+                           type="button"
+                           size="sm"
+                           className="h-7 text-xs bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
+                           onClick={() => handleSaveEdit(m.id)}
+                         >
+                           Save
+                         </Button>
+                       </div>
+                     </div>
+                   ) : isImage ? (
+                     m.image_url ? (
+                       <SignedImage
+                         bucket="chat-images"
+                         path={m.image_url}
+                         alt="Shared image"
+                         className="block max-h-72 max-w-full cursor-pointer rounded-2xl"
+                         onClick={async () => {
+                           const { data } = await supabase.storage.from("chat-images").createSignedUrl(m.image_url!, 3600);
+                           if (data?.signedUrl) setLightbox(data.signedUrl);
+                         }}
+                       />
+                     ) : (
+                       <div className="flex h-40 w-40 items-center justify-center">
+                         <Loader2 className="h-5 w-5 animate-spin text-white/80" />
+                       </div>
+                     )
+                    ) : isAudio ? (
+                      <VoiceNoteBubble
+                        audioUrl={m.audio_url!}
+                        durationSeconds={m.duration_seconds ?? 0}
+                        mine={mine}
+                        messageId={m.id}
+                      />
+                   ) : (
+                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                   )}
+                   {m.message_type === "game" && m.game_id && gameStates[m.game_id] && (
+                     <div className="mt-2">
+                       <GameCard
+                         gameType={(gameStates[m.game_id]?.game_type as GameType) || "dice"}
+                         state={gameStates[m.game_id]}
+                         currentUserId={user!.id}
+                         onMove={(newState) => updateGameState(m.game_id!, newState)}
+                       />
+                     </div>
+                   )}
+                   <div
+                     className={
+                       "text-[10px] font-normal tabular-nums " +
+                       (isImage || isAudio ? "px-2 pb-1 pt-1 " : "mt-0.5 ") +
+                       (mine ? "text-right text-white/60" : "text-right text-muted-foreground/70")
+                     }
+                   >
+                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                     {isEdited && <span className="ml-1 italic opacity-70">edited</span>}
+                   </div>
+                 </div>
+               </div>
+             );
+           })}
           {partnerTyping && !ended && (
             <div className="flex justify-start">
               <div className="rounded-3xl rounded-bl-md border border-border bg-card px-4 py-3">
@@ -1235,14 +1389,44 @@ const send = async () => {
         </div>
       </div>
 
-      {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)}>
-          <button type="button" className="absolute right-4 top-4 rounded-full bg-card/10 p-2 text-white" aria-label="Close">
-            <X className="h-5 w-5" />
-          </button>
-          <img src={lightbox} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
-        </div>
-      )}
-    </div>
-  );
-}
+       {lightbox && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(null)}>
+           <button type="button" className="absolute right-4 top-4 rounded-full bg-card/10 p-2 text-white" aria-label="Close">
+             <X className="h-5 w-5" />
+           </button>
+           <img src={lightbox} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
+         </div>
+       )}
+
+       {contextMenuId && (
+         <div
+           className="fixed z-[60] rounded-lg border border-border bg-card shadow-lg py-1 min-w-[140px]"
+           style={{ left: contextMenuX, top: contextMenuY }}
+           onClick={(e) => e.stopPropagation()}
+         >
+           <button
+             type="button"
+             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
+             onClick={() => {
+               const msg = messages.find((m) => m.id === contextMenuId);
+               if (msg && msg.content) handleEdit(msg.id, msg.content);
+             }}
+           >
+             <Pencil className="h-3.5 w-3.5" />
+             Edit
+           </button>
+           <button
+             type="button"
+             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent"
+             onClick={() => {
+               handleDelete(contextMenuId!);
+             }}
+           >
+             <Trash className="h-3.5 w-3.5" />
+             Delete
+           </button>
+         </div>
+       )}
+     </div>
+   );
+ }
