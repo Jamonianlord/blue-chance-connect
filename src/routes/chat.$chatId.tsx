@@ -279,6 +279,9 @@ function ChatPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const silentGainNodeRef = useRef<GainNode | null>(null);
+  const captureSampleRateRef = useRef<number | null>(null);
   const isRecordingRef = useRef(false);
   const pcmChunksRef = useRef<Float32Array[]>([]);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -557,7 +560,9 @@ const send = async () => {
     const stream = streamRef.current;
     const audioContext = audioContextRef.current;
     const source = sourceNodeRef.current;
-    const sampleRate = audioContext.sampleRate;
+    const processor = processorNodeRef.current;
+    const silentGain = silentGainNodeRef.current;
+    const sampleRate = captureSampleRateRef.current;
 
     setRecording(false);
     isRecordingRef.current = false;
@@ -567,6 +572,10 @@ const send = async () => {
       recordingIntervalRef.current = null;
     }
 
+    processor?.disconnect();
+    processorNodeRef.current = null;
+    silentGain?.disconnect();
+    silentGainNodeRef.current = null;
     source?.disconnect();
     sourceNodeRef.current = null;
 
@@ -575,11 +584,12 @@ const send = async () => {
 
     stream.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    captureSampleRateRef.current = null;
 
     const durationMs = Date.now() - recordingStartRef.current;
     const durationSeconds = Math.round(durationMs / 1000);
 
-    if (pcmChunksRef.current.length === 0) {
+    if (pcmChunksRef.current.length === 0 || sampleRate === null) {
       setRecordingTime(0);
       return;
     }
@@ -636,11 +646,16 @@ const send = async () => {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: { ideal: 1 },
+        },
+      });
       streamRef.current = stream;
 
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
+      captureSampleRateRef.current = audioContext.sampleRate;
 
       if (audioContext.state === "suspended") {
         await audioContext.resume();
@@ -653,21 +668,40 @@ const send = async () => {
       recordingStartRef.current = Date.now();
 
       const bufferSize = 4096;
-      const channelCount = source.channelCount || 1;
-      const recorder = audioContext.createScriptProcessor(bufferSize, channelCount, channelCount);
+      // The encoder is mono, so the Web Audio graph must also expose exactly
+      // one channel. Web Audio performs the stereo-to-mono downmix before the
+      // callback rather than us appending L/R channels as consecutive samples.
+      const recorder = audioContext.createScriptProcessor(bufferSize, 1, 1);
+      recorder.channelCount = 1;
+      recorder.channelCountMode = "explicit";
+      recorder.channelInterpretation = "speakers";
+      processorNodeRef.current = recorder;
+
+      // ScriptProcessorNode must reach the destination to receive callbacks.
+      // A zero-gain node keeps that graph active without monitoring the mic.
+      const silentGain = audioContext.createGain();
+      silentGain.gain.value = 0;
+      silentGainNodeRef.current = silentGain;
 
       isRecordingRef.current = true;
 
       recorder.onaudioprocess = (e) => {
         if (!isRecordingRef.current) return;
-        for (let ch = 0; ch < channelCount; ch++) {
-          const input = e.inputBuffer.getChannelData(ch);
-          pcmChunksRef.current.push(new Float32Array(input));
+        const captureSampleRate = captureSampleRateRef.current;
+        if (captureSampleRate === null || e.inputBuffer.sampleRate !== captureSampleRate) {
+          console.error("[chat] voice capture sample rate changed during recording", {
+            expected: captureSampleRate,
+            received: e.inputBuffer.sampleRate,
+          });
+          return;
         }
+        const monoInput = e.inputBuffer.getChannelData(0);
+        pcmChunksRef.current.push(new Float32Array(monoInput));
       };
 
       source.connect(recorder);
-      recorder.connect(audioContext.destination);
+      recorder.connect(silentGain);
+      silentGain.connect(audioContext.destination);
 
       setRecording(true);
       recordingIntervalRef.current = setInterval(() => {
@@ -693,12 +727,18 @@ const send = async () => {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
+    processorNodeRef.current?.disconnect();
+    processorNodeRef.current = null;
+    silentGainNodeRef.current?.disconnect();
+    silentGainNodeRef.current = null;
+    sourceNodeRef.current?.disconnect();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
     pcmChunksRef.current = [];
     sourceNodeRef.current = null;
+    captureSampleRateRef.current = null;
   };
 
   const onRecordingPointerDown = (e: React.PointerEvent) => {
