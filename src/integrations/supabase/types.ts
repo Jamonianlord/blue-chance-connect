@@ -108,39 +108,27 @@ export type Database = {
       }
       messages: {
         Row: {
-          audio_url: string | null
           chat_id: string
           content: string | null
           created_at: string
-          duration_seconds: number | null
-          game_id: string | null
           id: string
           image_url: string | null
-          message_type: Database["public"]["Enums"]["message_type_enum"]
           sender_id: string
         }
         Insert: {
-          audio_url?: string | null
           chat_id: string
           content?: string | null
           created_at?: string
-          duration_seconds?: number | null
-          game_id?: string | null
           id?: string
           image_url?: string | null
-          message_type?: Database["public"]["Enums"]["message_type_enum"]
           sender_id: string
         }
         Update: {
-          audio_url?: string | null
           chat_id?: string
           content?: string | null
           created_at?: string
-          duration_seconds?: number | null
-          game_id?: string | null
           id?: string
           image_url?: string | null
-          message_type?: Database["public"]["Enums"]["message_type_enum"]
           sender_id?: string
         }
         Relationships: [
@@ -162,7 +150,6 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests: string[]
-          last_seen: string | null
           name: string
           terms_accepted_at: string | null
           updated_at: string
@@ -175,7 +162,6 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           interests?: string[]
-          last_seen?: string | null
           name: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -188,7 +174,6 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           interests?: string[]
-          last_seen?: string | null
           name?: string
           terms_accepted_at?: string | null
           updated_at?: string
@@ -254,50 +239,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_games: {
-        Row: {
-          chat_id: string
-          created_at: string
-          created_by: string
-          game_type: Database["public"]["Enums"]["game_type_enum"]
-          id: string
-          result: Json | null
-          state: Json
-          status: Database["public"]["Enums"]["game_status_enum"]
-          updated_at: string
-        }
-        Insert: {
-          chat_id: string
-          created_at?: string
-          created_by: string
-          game_type: Database["public"]["Enums"]["game_type_enum"]
-          id?: string
-          result?: Json | null
-          state?: Json
-          status?: Database["public"]["Enums"]["game_status_enum"]
-          updated_at?: string
-        }
-        Update: {
-          chat_id?: string
-          created_at?: string
-          created_by?: string
-          game_type?: Database["public"]["Enums"]["game_type_enum"]
-          id?: string
-          result?: Json | null
-          state?: Json
-          status?: Database["public"]["Enums"]["game_status_enum"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_games_chat_id_fkey"
-            columns: ["chat_id"]
-            isOneToOne: false
-            referencedRelation: "chats"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -342,10 +283,7 @@ export type Database = {
     Enums: {
       chat_type_enum: "random" | "friend"
       friendship_status: "pending" | "accepted" | "declined"
-      game_status_enum: "active" | "completed"
-      game_type_enum: "dice" | "truth_or_dare" | "tic_tac_toe"
       gender_type: "male" | "female" | "other"
-      message_type_enum: "text" | "game"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -475,10 +413,7 @@ export const Constants = {
     Enums: {
       chat_type_enum: ["random", "friend"],
       friendship_status: ["pending", "accepted", "declined"],
-      game_status_enum: ["active", "completed"],
-      game_type_enum: ["dice", "truth_or_dare", "tic_tac_toe"],
       gender_type: ["male", "female", "other"],
-      message_type_enum: ["text", "game"],
     },
   },
 } as const
