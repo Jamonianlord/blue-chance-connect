@@ -32,20 +32,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   usePresenceHeartbeat(user?.id);
 
-  const loadProfile = async (uid: string) => {
-    try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-      if (error) {
-        console.error("[auth] loadProfile error", error);
-        setProfile(null);
-        return;
+  // A freshly-signed-up user's profile row is inserted right after the auth state
+  // change fires, so a single read can legitimately come back empty. Retry briefly
+  // instead of leaving the app stuck on "profile not set up yet".
+  const loadProfile = async (uid: string, retries = 6) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+        if (error) {
+          console.error("[auth] loadProfile error", error);
+        } else if (data) {
+          setProfile(data as Profile);
+          return;
+        }
+      } catch (err) {
+        console.error("[auth] loadProfile unexpected error", err);
       }
-      setProfile(data as Profile | null);
-    } catch (err) {
-      console.error("[auth] loadProfile unexpected error", err);
-      setProfile(null);
+      if (attempt < retries) await new Promise((r) => setTimeout(r, 500));
     }
+    setProfile(null);
   };
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -75,12 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     refreshProfile: async () => {
-      if (user) {
-        try {
-          await loadProfile(user.id);
-        } catch (err) {
-          console.error("[auth] refreshProfile error", err);
-        }
+      try {
+        // `user` state can still be null right after sign-up, so fall back to the
+        // live session rather than silently doing nothing.
+        const uid = user?.id ?? (await supabase.auth.getUser()).data.user?.id;
+        if (uid) await loadProfile(uid, 4);
+      } catch (err) {
+        console.error("[auth] refreshProfile error", err);
       }
     },
     signOut: async () => { await supabase.auth.signOut(); },

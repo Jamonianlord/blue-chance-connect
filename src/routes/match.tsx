@@ -38,6 +38,12 @@ function MatchPage() {
   const cancelledRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Mirrors of state/props for use inside unmount-only cleanup and window listeners,
+  // so those effects never need reactive deps (re-running them used to cancel the search).
+  const userRef = useRef(user);
+  const searchingRef = useRef(searching);
+  userRef.current = user;
+  searchingRef.current = searching;
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -132,101 +138,97 @@ function MatchPage() {
     };
   };
 
+  // Clear any ghost waiting-pool row left behind by a crash/hard refresh, so the
+  // user can never be matched into a chat they aren't watching.
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (user) {
-        supabase.from("waiting_pool").delete().eq("user_id", user.id);
-      }
-      if (presenceRef.current) {
-        presenceRef.current?.untrack();
-        supabase.removeChannel(presenceRef.current);
-        presenceRef.current = null;
-      }
-    };
+    if (user && !searchingRef.current) {
+      supabase.from("waiting_pool").delete().eq("user_id", user.id).then(() => {});
+    }
+  }, [user]);
 
-    const handlePageHide = () => {
-      if (user) {
-        supabase.from("waiting_pool").delete().eq("user_id", user.id);
-      }
+  // Window listeners + true unmount cleanup. Deliberately has NO reactive deps:
+  // when this effect re-ran (on `searching`/`lookingFor` changes) its cleanup cancelled
+  // the in-flight search and deleted the user from the waiting pool, so no match could complete.
+  useEffect(() => {
+    const leavePool = () => {
+      const u = userRef.current;
+      if (u) supabase.from("waiting_pool").delete().eq("user_id", u.id);
       if (presenceRef.current) {
-        presenceRef.current?.untrack();
+        presenceRef.current.untrack();
         supabase.removeChannel(presenceRef.current);
         presenceRef.current = null;
       }
     };
 
     const handleVisibility = async () => {
-      if (document.visibilityState === "visible" && searching && user) {
-        console.log("[match] tab visible, re-checking match state...");
-        const { data: existingChats } = await supabase
-          .from("chats")
-          .select("id")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-          .is("ended_at", null)
-          .limit(1);
-        if (existingChats && existingChats.length > 0) {
-          if (pollRef.current) clearInterval(pollRef.current);
-          navigate({ to: "/chat/$chatId", params: { chatId: existingChats[0].id } });
-        }
+      const u = userRef.current;
+      if (document.visibilityState !== "visible" || !searchingRef.current || !u) return;
+      const { data: existingChats } = await supabase
+        .from("chats")
+        .select("id")
+        .or(`user1_id.eq.${u.id},user2_id.eq.${u.id}`)
+        .is("ended_at", null)
+        .limit(1);
+      if (existingChats && existingChats.length > 0 && !cancelledRef.current) {
+        cancelledRef.current = true;
+        if (pollRef.current) clearInterval(pollRef.current);
+        navigate({ to: "/chat/$chatId", params: { chatId: existingChats[0].id } });
       }
     };
 
-    if (searching && user) {
-      const presenceChannel = supabase.channel("presence:online-users", {
-        config: {
-          broadcast: { self: false },
-          presence: {},
-        },
-      });
-
-      presenceChannel
-        .on("presence", { event: "join" }, () => {
-          const state = presenceChannel?.presenceState();
-          const count = state ? Object.keys(state).length : 0;
-          setSearchingCount(count);
-        })
-        .on("presence", { event: "leave" }, () => {
-          const state = presenceChannel?.presenceState();
-          const count = state ? Object.keys(state).length : 0;
-          setSearchingCount(count);
-        })
-        .subscribe((status) => {
-          if (status === "SUBSCRIBED") {
-            presenceChannel?.track({
-              searching: true,
-              lookingFor: lookingFor,
-            });
-          }
-        });
-
-      presenceRef.current = presenceChannel;
-    } else if (!searching && presenceRef.current) {
-      presenceRef.current?.untrack();
-      if (presenceRef.current) {
-        supabase.removeChannel(presenceRef.current);
-        presenceRef.current = null;
-      }
-      setSearchingCount(0);
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("beforeunload", leavePool);
+    window.addEventListener("pagehide", leavePool);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       cancelledRef.current = true;
       if (pollRef.current) clearInterval(pollRef.current);
-      if (user) supabase.from("waiting_pool").delete().eq("user_id", user.id);
+      leavePool();
+      window.removeEventListener("beforeunload", leavePool);
+      window.removeEventListener("pagehide", leavePool);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Presence channel: only tracks how many people are searching. Its cleanup must
+  // never touch the search state itself.
+  useEffect(() => {
+    if (!searching || !user) {
       if (presenceRef.current) {
-        presenceRef.current?.untrack();
+        presenceRef.current.untrack();
         supabase.removeChannel(presenceRef.current);
         presenceRef.current = null;
+        setSearchingCount(0);
       }
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("visibilitychange", handleVisibility);
+      return;
+    }
+
+    const presenceChannel = supabase.channel("presence:online-users");
+    const sync = () => {
+      const state = presenceChannel.presenceState();
+      setSearchingCount(state ? Object.keys(state).length : 0);
+    };
+
+    presenceChannel
+      .on("presence", { event: "sync" }, sync)
+      .on("presence", { event: "join" }, sync)
+      .on("presence", { event: "leave" }, sync)
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          presenceChannel.track({ searching: true, lookingFor });
+        }
+      });
+
+    presenceRef.current = presenceChannel;
+
+    return () => {
+      presenceChannel.untrack();
+      supabase.removeChannel(presenceChannel);
+      if (presenceRef.current === presenceChannel) presenceRef.current = null;
     };
   }, [searching, user, lookingFor]);
+
 
   if (authLoading || !profile) {
     return (
