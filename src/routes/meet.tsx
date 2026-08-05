@@ -292,6 +292,10 @@ function DiscoveryFeed() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [swipedIds, setSwipedIds] = useState<Set<string>>(new Set());
+  const [strictness, setStrictness] = useState(() => {
+    const saved = localStorage.getItem("meet_strictness");
+    return saved ? parseInt(saved) : 0;
+  });
 
   const loadFeed = useCallback(async () => {
     if (!user) return;
@@ -421,7 +425,7 @@ function DiscoveryFeed() {
         discoverData = discoverData
           .map((user) => ({
             ...user,
-            _score: (user.interest_overlap * 3) + user.personality_overlap + Math.random() * 0.1,
+            _score: (user.interest_overlap * 2) + (user.personality_overlap * 2) + Math.random() * 0.1,
           }))
           .sort((a, b) => b._score! - a._score!)
           .map(({ _score: _, ...user }) => user);
@@ -430,7 +434,15 @@ function DiscoveryFeed() {
       if (!hasOtherProfiles && discoverData.length === 0) {
         setDiscoveredUsers([]);
       } else {
-        setDiscoveredUsers(discoverData);
+        const filteredUsers =
+          strictness === 0
+            ? discoverData
+            : discoverData.filter((u) => {
+                const score = (u.interest_overlap * 2) + (u.personality_overlap * 2);
+                const minScore = (strictness / 100) * 10;
+                return score >= minScore;
+              });
+        setDiscoveredUsers(filteredUsers);
       }
     } catch (error) {
       console.error("[meet] load error", error);
@@ -476,6 +488,23 @@ function DiscoveryFeed() {
     setSwipedIds((prev) => new Set([...prev, userId]));
     setDiscoveredUsers((prev) => prev.filter((u) => u.user_id !== userId));
   };
+
+  const handleStrictnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    localStorage.setItem("meet_strictness", value.toString());
+    setStrictness(value);
+  };
+
+  const handleStrictnessSubmit = () => {
+    const filtered = discoveredUsers.filter((u) => {
+      const score = (u.interest_overlap * 2) + (u.personality_overlap * 2);
+      const minScore = (strictness / 100) * 10;
+      return score >= minScore;
+    });
+    setDiscoveredUsers(filtered);
+  };
+
+  const visibleUsers = discoveredUsers.filter((u) => !swipedIds.has(u.user_id)).slice(0, 5);
 
   if (loading) {
     return (
@@ -529,119 +558,148 @@ function DiscoveryFeed() {
       <Header />
       <main className="mx-auto max-w-lg px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Meet</h1>
-        <p className="text-muted-foreground mb-4">People who match your vibe</p>
+        <p className="text-muted-foreground mb-6">People who match your vibe</p>
+
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Show me:</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              {strictness === 0 ? "Everyone" :
+               strictness === 25 ? "Some overlap" :
+               strictness === 50 ? "Closer matches" :
+               strictness === 75 ? "Strong matches" : "Best matches"}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={strictness}
+            onChange={handleStrictnessChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <span>Everyone</span>
+            <span>Best matches only</span>
+          </div>
+        </div>
 
         <div className="space-y-4">
-          {discoveredUsers
-            .filter((u) => !swipedIds.has(u.user_id))
-            .slice(0, 5)
-            .map((userCard) => {
-              const overlapCount = userCard.interest_overlap;
+          {visibleUsers.map((userCard) => {
+            const overlapCount = userCard.interest_overlap;
 
-              return (
-                <div
-                  key={userCard.user_id}
-                  className="rounded-2xl border border-border bg-card p-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar path={userCard.avatar_url} name={userCard.name} size={80} />
+            return (
+              <div
+                key={userCard.user_id}
+                className="rounded-2xl border border-border bg-card p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar path={userCard.avatar_url} name={userCard.name} size={80} />
 
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h2 className="font-semibold text-lg">
-                          {userCard.name}, {userCard.age}
-                        </h2>
-                      </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-semibold text-lg">
+                        {userCard.name}, {userCard.age}
+                      </h2>
+                    </div>
 
-                      {userCard.bio && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {userCard.bio}
-                        </p>
-                      )}
+                    {userCard.bio && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {userCard.bio}
+                      </p>
+                    )}
 
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {userCard.interests.slice(0, 3).map((interest) => {
-                          const isOverlap = overlapCount > 0 && userCard.interests.includes(interest);
-                          return (
-                            <span
-                              key={interest}
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                isOverlap
-                                  ? "bg-[var(--brand)] text-white"
-                                  : "bg-muted text-muted-foreground"
-                              }`}
-                            >
-                              {interest}
-                            </span>
-                          );
-                        })}
-                        {userCard.interests.length > 3 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{userCard.interests.length - 3}
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {userCard.interests.slice(0, 3).map((interest) => {
+                        const isOverlap = overlapCount > 0 && userCard.interests.includes(interest);
+                        return (
+                          <span
+                            key={interest}
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              isOverlap
+                                ? "bg-[var(--brand)] text-white"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {interest}
                           </span>
-                        )}
-                      </div>
+                        );
+                      })}
+                      {userCard.interests.length > 3 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{userCard.interests.length - 3}
+                        </span>
+                      )}
+                    </div>
 
-                      <div className="mt-3 flex gap-2">
-                        {PICK_CONFIG.filter((p) => (userCard as any)[p.key]).map((pick) => {
-                          const key = pick.key as keyof DiscoveredUser;
-                          const value = userCard[key] as string | null;
-                          const matchValue = userCard[key];
-                          return (
-                            <span
-                              key={pick.key}
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                matchValue 
-                                  ? "bg-[var(--brand-soft)] text-[var(--brand)]"
-                                  : "bg-muted text-muted-foreground"
-                              }`}
-                            >
-                              {value === "messi" ? "⚽ M" :
-                               value === "ronaldo" ? "⚽ R" :
-                               value === "dog" ? "🐕 D" :
-                               value === "cat" ? "🐱 C" :
-                               value === "early_bird" ? "🌅 E" :
-                               value === "night_owl" ? "🌙 N" :
-                               value === "adventurous" ? "🌍 A" :
-                               value === "chill" ? "🏖️ C" : ""}
-                            </span>
-                          );
-                        })}
-                      </div>
+                    <div className="mt-3 flex gap-2">
+                      {PICK_CONFIG.filter((p) => (userCard as any)[p.key]).map((pick) => {
+                        const key = pick.key as keyof DiscoveredUser;
+                        const value = userCard[key] as string | null;
+                        const matchValue = userCard[key];
+                        return (
+                          <span
+                            key={pick.key}
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              matchValue 
+                                ? "bg-[var(--brand-soft)] text-[var(--brand)]"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {value === "messi" ? "⚽ M" :
+                             value === "ronaldo" ? "⚽ R" :
+                             value === "dog" ? "🐕 D" :
+                             value === "cat" ? "🐱 C" :
+                             value === "early_bird" ? "🌅 E" :
+                             value === "night_owl" ? "🌙 N" :
+                             value === "adventurous" ? "🌍 A" :
+                             value === "chill" ? "🏖️ C" : ""}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
-
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-full"
-                      onClick={() => skipUser(userCard.user_id)}
-                      disabled={busyId === userCard.user_id}
-                    >
-                      <X className="mr-1 h-4 w-4" /> Skip
-                    </Button>
-                    <Button
-                      className="flex-1 brand-gradient rounded-full text-white"
-                      onClick={() => sendFriendRequest(userCard.user_id)}
-                      disabled={
-                        busyId === userCard.user_id || userCard.friendship_status !== "none"
-                      }
-                    >
-                      {busyId === userCard.user_id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : userCard.friendship_status === "accepted" ? (
-                        <span>Friends</span>
-                      ) : userCard.friendship_status === "pending_sent" ? (
-                        <span>Requested</span>
-                      ) : (
-                        <><UserPlus className="mr-1 h-4 w-4" /> Add</>
-                      )}
-                    </Button>
-                  </div>
                 </div>
-              );
-            })}
+
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-full"
+                    onClick={() => skipUser(userCard.user_id)}
+                    disabled={busyId === userCard.user_id}
+                  >
+                    <X className="mr-1 h-4 w-4" /> Skip
+                  </Button>
+                  <Button
+                    className="flex-1 brand-gradient rounded-full text-white"
+                    onClick={() => sendFriendRequest(userCard.user_id)}
+                    disabled={
+                      busyId === userCard.user_id || userCard.friendship_status !== "none"
+                    }
+                  >
+                    {busyId === userCard.user_id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : userCard.friendship_status === "accepted" ? (
+                      <span>Friends</span>
+                    ) : userCard.friendship_status === "pending_sent" ? (
+                      <span>Requested</span>
+                    ) : (
+                      <><UserPlus className="mr-1 h-4 w-4" /> Add</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
+
+        {visibleUsers.length === 0 && discoveredUsers.length > 0 && (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center">
+            <p className="text-muted-foreground">
+              No matches at this level — try loosening the filter.
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
