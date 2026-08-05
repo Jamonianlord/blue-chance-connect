@@ -161,6 +161,10 @@ function ProfilePage() {
             </div>
           </div>
            <div>
+             <Label htmlFor="name">Name</Label>
+             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={50} />
+           </div>
+           <div>
              <Label htmlFor="age">Age</Label>
              <Input id="age" type="number" min={18} value={age} onChange={(e) => setAge(e.target.value)} />
            </div>
