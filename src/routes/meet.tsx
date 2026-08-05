@@ -65,21 +65,13 @@ type DiscoveredUser = {
   interest_overlap: number;
   personality_overlap: number;
   friendship_status: "none" | "pending_sent" | "pending_received" | "accepted";
-  friendship_id: string | null;
 };
 
-const PICK_LABELS: Record<string, { emoji: string; label: string }> = {
-  football_pick: { emoji: "⚽", label: "Football" },
-  pet_pick: { emoji: "🐕🐱", label: "Pet" },
-  schedule_pick: { emoji: "🌅🌙", label: "Schedule" },
-  vibe_pick: { emoji: "🌍🏖️", label: "Vibe" },
-};
-
-const PICKS_CONFIG = [
-  { key: "football_pick" as const, title: "Football", options: ["messi", "ronaldo"] as const },
-  { key: "pet_pick" as const, title: "Pet", options: ["dog", "cat"] as const },
-  { key: "schedule_pick" as const, title: "Schedule", options: ["early_bird", "night_owl"] as const },
-  { key: "vibe_pick" as const, title: "Vibe", options: ["adventurous", "chill"] as const },
+const PICK_CONFIG = [
+  { key: "football_pick", emoji: "⚽", labels: { messi: "Messi", ronaldo: "Ronaldo" } },
+  { key: "pet_pick", emoji: "🐕", labels: { dog: "Dog", cat: "Cat" } },
+  { key: "schedule_pick", emoji: "🌅", labels: { early_bird: "Early", night_owl: "Night" } },
+  { key: "vibe_pick", emoji: "🌍", labels: { adventurous: "Adventurous", chill: "Chill" } },
 ];
 
 function HeroScreen({ onNext }: { onNext: () => void }) {
@@ -185,9 +177,14 @@ function PersonalityStep({
   onNext: () => void;
   onBack: () => void;
 }) {
-  const allComplete = PICKS_CONFIG.every(
-    (pick: typeof PICKS_CONFIG[number]) => (picks as Record<string, string | null>)[pick.key] !== undefined
+  const allComplete = PICK_CONFIG.every(
+    (pick) => (picks as Record<string, string | null>)[pick.key] !== null
   );
+
+  const getPickValue = (key: keyof PersonalityPicks): string | null => {
+    const v = (picks as Record<string, string | null>)[key];
+    return v || null;
+  };
 
   return (
     <div className="flex-1 bg-background px-4 py-8">
@@ -197,43 +194,78 @@ function PersonalityStep({
         <p className="mt-1 text-sm text-muted-foreground">Tell us your vibe</p>
 
         <div className="mt-6 space-y-4">
-          {PICKS_CONFIG.map(({ key, title, options }) => (
-            <div key={key} className="space-y-2">
-              <h3 className="text-sm font-medium capitalize">{title.toLowerCase()}</h3>
-              <div className="flex gap-2">
-                {options.map((opt: string) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => onSelect(key, opt)}
-                    className={
-                      "rounded-full px-3 py-1.5 text-xs font-medium transition " +
-                      "flex-1 " +
-                      ((picks[key as keyof PersonalityPicks] as string) === opt
-                        ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                        : "border-border bg-card text-foreground hover:bg-muted")
-                    }
+          {PICK_CONFIG.map(({ key, emoji, labels }) => {
+            const categoryKey = key as keyof PersonalityPicks;
+            return (
+              <div key={key} className="space-y-2">
+                <h3 className="text-sm font-medium capitalize">
+                  {key.replace("_pick", "").replace("_", " ")}
+                </h3>
+                <div className="flex gap-2">
+                  {(["messi", "ronaldo"] as const).map((opt: "messi" | "ronaldo") => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => onSelect(categoryKey, opt)}
+                      className={
+                        "rounded-full px-3 py-1.5 text-xs font-medium transition " +
+                        "flex-1 " +
+                        (getPickValue(categoryKey) === opt
+                          ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                          : "border-border bg-card text-foreground hover:bg-muted")
+                      }
                     >
-                      {((picks[key as keyof PersonalityPicks] as string) === "messi" || (picks[key as keyof PersonalityPicks] as string) === "ronaldo")
-                        ? opt === "messi"
-                          ? "⚽ Messi"
-                          : "⚽ Ronaldo"
-                        : (picks[key as keyof PersonalityPicks] as string) === "dog" || (picks[key as keyof PersonalityPicks] as string) === "cat"
-                        ? opt === "dog"
-                          ? "🐕 Dog"
-                          : "🐱 Cat"
-                        : (picks[key as keyof PersonalityPicks] as string) === "early_bird" || (picks[key as keyof PersonalityPicks] as string) === "night_owl"
-                        ? opt === "early_bird"
-                          ? "🌅 Early"
-                          : "🌙 Night"
-                        : opt === "adventurous"
-                        ? "🌍 Adventurous"
-                        : "🏖️ Chill"}
-                  </button>
-                ))}
+                      ⚽ {labels[opt]}
+                    </button>
+                  ))}
+                </div>
               </div>
+            );
+          })}
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium capitalize">pets</h3>
+            <div className="flex gap-2">
+              {(["dog", "cat"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => onSelect("pet_pick", opt)}
+                  className={
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition " +
+                    "flex-1 " +
+                    (getPickValue("pet_pick") === opt
+                      ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                      : "border-border bg-card text-foreground hover:bg-muted")
+                  }
+                >
+                  {opt === "dog" ? "🐕 Dog" : "🐱 Cat"}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium capitalize">schedule</h3>
+            <div className="flex gap-2">
+              {(["early_bird", "night_owl"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => onSelect("schedule_pick", opt)}
+                  className={
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition " +
+                    "flex-1 " +
+                    (getPickValue("schedule_pick") === opt
+                      ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                      : "border-border bg-card text-foreground hover:bg-muted")
+                  }
+                >
+                  {opt === "early_bird" ? "🌅 Early" : "🌙 Night"}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 flex gap-2">
@@ -327,62 +359,79 @@ function DiscoveryFeed() {
         }
       });
 
+      const totalMeetProfiles = meetProfiles?.filter((m) => m.completed_at && m.user_id !== user.id).length ?? 0;
+      const hasOtherProfiles = totalMeetProfiles > 0;
+
       const myInterests = myProfile.interests || [];
+      const myMeetProfile = await supabase
+        .from("meet_profiles")
+        .select("football_pick, pet_pick, schedule_pick, vibe_pick")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const myPicks = myMeetProfile.data;
 
-      const discoverData = (candidates ?? [])
-        .filter((c) => validCandidateIds.has(c.id))
-        .map((c) => {
-          const candidateMeetProfile = (meetProfiles ?? []).find((mp) => mp.user_id === c.id);
-          const candidateInterests = candidateMeetProfile?.interests ?? [];
-          const interestOverlap = myInterests.filter((i) => candidateInterests.includes(i)).length;
+      let discoverData: DiscoveredUser[] = [];
 
-          const myPicks = null; // We don't compare picks for discovery feed
-          const candidatePicks = candidateMeetProfile;
+      if (hasOtherProfiles) {
+        discoverData = (candidates ?? [])
+          .filter((c) => validCandidateIds.has(c.id))
+          .map((c) => {
+            const candidateMeetProfile = (meetProfiles ?? []).find((mp) => mp.user_id === c.id);
+            if (!candidateMeetProfile?.completed_at) return null;
 
-          let personalityOverlap = 0;
-          if (candidatePicks) {
-            if (candidatePicks.football_pick && true) personalityOverlap++;
-            if (candidatePicks.pet_pick && true) personalityOverlap++;
-            if (candidatePicks.schedule_pick && true) personalityOverlap++;
-            if (candidatePicks.vibe_pick && true) personalityOverlap++;
-          }
+            const candidateInterests = candidateMeetProfile.interests || [];
+            const interestOverlap = myInterests.filter((i) => candidateInterests.includes(i)).length;
 
-          let status: "none" | "pending_sent" | "pending_received" | "accepted" = "none";
-          const friendshipId: string | null = null;
+            let personalityOverlap = 0;
+            if (myPicks && candidateMeetProfile) {
+              if (myPicks.football_pick === candidateMeetProfile.football_pick && myPicks.football_pick) personalityOverlap++;
+              if (myPicks.pet_pick === candidateMeetProfile.pet_pick && myPicks.pet_pick) personalityOverlap++;
+              if (myPicks.schedule_pick === candidateMeetProfile.schedule_pick && myPicks.schedule_pick) personalityOverlap++;
+              if (myPicks.vibe_pick === candidateMeetProfile.vibe_pick && myPicks.vibe_pick) personalityOverlap++;
+            }
 
-          if (myFriends.has(c.id)) {
-            status = "accepted";
-          } else if (pendingReceived.has(c.id)) {
-            status = "pending_received";
-          } else if (myRequestsSent.has(c.id)) {
-            status = "pending_sent";
-          }
+            let status: DiscoveredUser["friendship_status"] = "none";
 
-          return {
-            user_id: c.id,
-            name: c.name,
-            age: c.age,
-            bio: c.bio,
-            avatar_url: c.avatar_url,
-            interests: c.interests ?? [],
-            football_pick: candidatePicks?.football_pick as "messi" | "ronaldo" | null ?? null,
-            pet_pick: candidatePicks?.pet_pick as "dog" | "cat" | null ?? null,
-            schedule_pick: candidatePicks?.schedule_pick as "early_bird" | "night_owl" | null ?? null,
-            vibe_pick: candidatePicks?.vibe_pick as "adventurous" | "chill" | null ?? null,
-            interest_overlap: interestOverlap,
-            personality_overlap: personalityOverlap,
-            friendship_status: status,
-            friendship_id: friendshipId,
-          };
-        })
-        .sort((a, b) => {
-          if (b.interest_overlap !== a.interest_overlap) {
-            return b.interest_overlap - a.interest_overlap;
-          }
-          return b.personality_overlap - a.personality_overlap;
-        });
+            if (myFriends.has(c.id)) {
+              status = "accepted";
+            } else if (pendingReceived.has(c.id)) {
+              status = "pending_received";
+            } else if (myRequestsSent.has(c.id)) {
+              status = "pending_sent";
+            }
 
-      setDiscoveredUsers(discoverData);
+            return {
+              user_id: c.id,
+              name: c.name,
+              age: c.age,
+              bio: c.bio,
+              avatar_url: c.avatar_url,
+              interests: c.interests ?? [],
+              football_pick: candidateMeetProfile.football_pick ?? null,
+              pet_pick: candidateMeetProfile.pet_pick ?? null,
+              schedule_pick: candidateMeetProfile.schedule_pick ?? null,
+              vibe_pick: candidateMeetProfile.vibe_pick ?? null,
+              interest_overlap: interestOverlap,
+              personality_overlap: personalityOverlap,
+              friendship_status: status,
+            };
+          })
+          .filter((u): u is DiscoveredUser => u !== null);
+
+        discoverData = discoverData
+          .map((user) => ({
+            ...user,
+            _score: (user.interest_overlap * 3) + user.personality_overlap + Math.random() * 0.1,
+          }))
+          .sort((a, b) => b._score! - a._score!)
+          .map(({ _score: _, ...user }) => user);
+      }
+
+      if (!hasOtherProfiles && discoverData.length === 0) {
+        setDiscoveredUsers([]);
+      } else {
+        setDiscoveredUsers(discoverData);
+      }
     } catch (error) {
       console.error("[meet] load error", error);
       toast.error("Could not load discover feed");
@@ -403,15 +452,13 @@ function DiscoveryFeed() {
     if (!user || !targetUserId) return;
     setBusyId(targetUserId);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("friendships")
       .insert({
         requester_id: user.id,
         addressee_id: targetUserId,
         status: "pending",
-      })
-      .select("id")
-      .single();
+      });
 
     setBusyId(null);
 
@@ -421,6 +468,7 @@ function DiscoveryFeed() {
     }
 
     toast.success("Friend request sent!");
+    setSwipedIds((prev) => new Set([...prev, targetUserId]));
     setDiscoveredUsers((prev) => prev.filter((u) => u.user_id !== targetUserId));
   };
 
@@ -429,37 +477,22 @@ function DiscoveryFeed() {
     setDiscoveredUsers((prev) => prev.filter((u) => u.user_id !== userId));
   };
 
-  const getPicksDisplay = (userCard: DiscoveredUser) => {
-    const picks: { icon: string; label: string }[] = [];
-    if (userCard.football_pick) {
-      picks.push({ icon: "⚽", label: userCard.football_pick === "messi" ? "Messi" : "Ronaldo" });
-    }
-    if (userCard.pet_pick) {
-      picks.push({ icon: userCard.pet_pick === "dog" ? "🐕" : "🐱", label: userCard.pet_pick });
-    }
-    if (userCard.schedule_pick) {
-      picks.push({ icon: userCard.schedule_pick === "early_bird" ? "🌅" : "🌙", label: userCard.schedule_pick });
-    }
-    if (userCard.vibe_pick) {
-      picks.push({ icon: userCard.vibe_pick === "adventurous" ? "🌍" : "🏖️", label: userCard.vibe_pick });
-    }
-    return picks;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-lg px-4 py-8">
-          <Skeleton className="mb-4 h-6 w-28" />
-          <Skeleton className="mb-3 h-4 w-20" />
           <div className="space-y-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-card p-4">
-                <Skeleton className="mb-3 h-16 w-16 rounded-full mx-auto" />
-                <Skeleton className="mb-2 h-4 w-24 mx-auto" />
-                <Skeleton className="mb-2 h-3 w-16 mx-auto" />
-                <Skeleton className="h-3 w-full" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-border bg-card p-4 animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="w-20 h-20 rounded-full bg-muted" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-3/4 bg-muted rounded" />
+                    <div className="h-4 w-1/2 bg-muted rounded" />
+                    <div className="h-3 w-full bg-muted rounded" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -473,13 +506,19 @@ function DiscoveryFeed() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-lg px-4 py-8">
-          <h1 className="text-2xl font-bold mb-4">Meet</h1>
-          <p className="text-muted-foreground mb-6">
-            No users to discover right now. Check back later!
-          </p>
-          <Button onClick={() => loadFeed()} className="brand-gradient rounded-full">
-            Refresh
-          </Button>
+          <div className="rounded-2xl border border-border bg-card p-8 text-center">
+            <div className="text-4xl mb-4">💬</div>
+            <h2 className="text-2xl font-bold mb-2">You've seen everyone for now!</h2>
+            <p className="text-muted-foreground mb-4">
+              Check back later to discover more people who share your vibe.
+            </p>
+            <Button
+              className="brand-gradient rounded-full"
+              onClick={() => loadFeed()}
+            >
+              Refresh
+            </Button>
+          </div>
         </main>
       </div>
     );
@@ -496,88 +535,112 @@ function DiscoveryFeed() {
           {discoveredUsers
             .filter((u) => !swipedIds.has(u.user_id))
             .slice(0, 5)
-            .map((userCard) => (
-              <div
-                key={userCard.user_id}
-                className="rounded-2xl border border-border bg-card p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar path={userCard.avatar_url} name={userCard.name} size={64} />
+            .map((userCard) => {
+              const overlapCount = userCard.interest_overlap;
 
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h2 className="font-semibold text-lg">
-                        {userCard.name}, {userCard.age}
-                      </h2>
-                      <span className="text-xs text-muted-foreground">·</span>
-                    </div>
+              return (
+                <div
+                  key={userCard.user_id}
+                  className="rounded-2xl border border-border bg-card p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar path={userCard.avatar_url} name={userCard.name} size={80} />
 
-                    {userCard.bio && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {userCard.bio}
-                      </p>
-                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h2 className="font-semibold text-lg">
+                          {userCard.name}, {userCard.age}
+                        </h2>
+                      </div>
 
-                    <div className="mt-3 flex flex-wrap gap-1">
-                      {userCard.interests.slice(0, 3).map((interest) => (
-                        <span
-                          key={interest}
-                          className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground"
-                        >
-                          {interest}
-                        </span>
-                      ))}
-                      {userCard.interests.length > 3 && (
-                        <span className="text-xs text-muted-foreground">
-                          +{userCard.interests.length - 3}
-                        </span>
+                      {userCard.bio && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {userCard.bio}
+                        </p>
                       )}
-                    </div>
 
-                    <div className="mt-3 flex gap-2">
-                      {getPicksDisplay(userCard).map((pick, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs px-2 py-1 rounded-full bg-[var(--brand-soft)] text-[var(--brand)]"
-                        >
-                          {pick.icon} {pick.label}
-                        </span>
-                      ))}
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {userCard.interests.slice(0, 3).map((interest) => {
+                          const isOverlap = overlapCount > 0 && userCard.interests.includes(interest);
+                          return (
+                            <span
+                              key={interest}
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                isOverlap
+                                  ? "bg-[var(--brand)] text-white"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {interest}
+                            </span>
+                          );
+                        })}
+                        {userCard.interests.length > 3 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{userCard.interests.length - 3}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex gap-2">
+                        {PICK_CONFIG.filter((p) => (userCard as any)[p.key]).map((pick) => {
+                          const key = pick.key as keyof DiscoveredUser;
+                          const value = userCard[key] as string | null;
+                          const matchValue = userCard[key];
+                          return (
+                            <span
+                              key={pick.key}
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                matchValue 
+                                  ? "bg-[var(--brand-soft)] text-[var(--brand)]"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {value === "messi" ? "⚽ M" :
+                               value === "ronaldo" ? "⚽ R" :
+                               value === "dog" ? "🐕 D" :
+                               value === "cat" ? "🐱 C" :
+                               value === "early_bird" ? "🌅 E" :
+                               value === "night_owl" ? "🌙 N" :
+                               value === "adventurous" ? "🌍 A" :
+                               value === "chill" ? "🏖️ C" : ""}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-full"
-                    onClick={() => skipUser(userCard.user_id)}
-                    disabled={busyId === userCard.user_id}
-                  >
-                    <X className="mr-1 h-4 w-4" /> Skip
-                  </Button>
-                  <Button
-                    className="flex-1 brand-gradient rounded-full text-white"
-                    onClick={() => sendFriendRequest(userCard.user_id)}
-                    disabled={
-                      busyId === userCard.user_id || userCard.friendship_status !== "none"
-                    }
-                  >
-                    {busyId === userCard.user_id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : userCard.friendship_status === "accepted" ? (
-                      <span>Friends</span>
-                    ) : userCard.friendship_status === "pending_sent" ? (
-                      <span>Requested</span>
-                    ) : (
-                      <>
-                        <UserPlus className="mr-1 h-4 w-4" /> Add
-                      </>
-                    )}
-                  </Button>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-full"
+                      onClick={() => skipUser(userCard.user_id)}
+                      disabled={busyId === userCard.user_id}
+                    >
+                      <X className="mr-1 h-4 w-4" /> Skip
+                    </Button>
+                    <Button
+                      className="flex-1 brand-gradient rounded-full text-white"
+                      onClick={() => sendFriendRequest(userCard.user_id)}
+                      disabled={
+                        busyId === userCard.user_id || userCard.friendship_status !== "none"
+                      }
+                    >
+                      {busyId === userCard.user_id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : userCard.friendship_status === "accepted" ? (
+                        <span>Friends</span>
+                      ) : userCard.friendship_status === "pending_sent" ? (
+                        <span>Requested</span>
+                      ) : (
+                        <><UserPlus className="mr-1 h-4 w-4" /> Add</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </main>
     </div>
@@ -643,10 +706,10 @@ function MeetPage() {
     const { error } = await supabase.from("meet_profiles").upsert({
       user_id: user.id,
       interests,
-      football_pick: picks.football_pick || null,
-      pet_pick: picks.pet_pick || null,
-      schedule_pick: picks.schedule_pick || null,
-      vibe_pick: picks.vibe_pick || null,
+      football_pick: (picks.football_pick as "messi" | "ronaldo") || null,
+      pet_pick: (picks.pet_pick as "dog" | "cat") || null,
+      schedule_pick: (picks.schedule_pick as "early_bird" | "night_owl") || null,
+      vibe_pick: (picks.vibe_pick as "adventurous" | "chill") || null,
       completed_at: new Date().toISOString(),
     });
 
