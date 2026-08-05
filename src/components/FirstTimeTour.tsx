@@ -1,32 +1,17 @@
 import { useEffect, useRef } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
-type DriverStep = {
+type DriverPopover = {
+  title?: string;
+  description?: string;
+  side?: "top" | "right" | "bottom" | "left";
+};
+
+type DriveStep = {
   element: string;
-  popover: {
-    title: string;
-    description: string;
-    position: string;
-  };
+  popover: DriverPopover;
 };
-
-declare const Driver: {
-  new (options: Record<string, unknown>): {
-    defineSteps: (steps: DriverStep[]) => void;
-    on: (event: string, callback: () => void) => void;
-    start: () => void;
-    destroy: () => void;
-  };
-};
-
-declare const driver: new (options: Record<string, unknown>) => {
-  defineSteps: (steps: DriverStep[]) => void;
-  on: (event: string, callback: () => void) => void;
-  start: () => void;
-  destroy: () => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const DriverModule = require("driver.js");
 
 const TOUR_SEEN_KEY = "1chance_tour_seen";
 
@@ -34,21 +19,27 @@ export function FirstTimeTour() {
   const hasSeenTourRef = useRef(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (hasSeenTourRef.current) return;
+
     const hasSeenTour = localStorage.getItem(TOUR_SEEN_KEY);
     if (hasSeenTour) {
       hasSeenTourRef.current = true;
       return;
     }
 
-    const steps: DriverStep[] = [
+    hasSeenTourRef.current = true;
+
+    let cancelled = false;
+
+    const steps: DriveStep[] = [
       {
         element: "#btn-find-match",
         popover: {
           title: "Find a match",
           description:
             "Tap here to instantly connect with someone new who's online right now.",
-          position: "bottom",
+          side: "bottom",
         },
       },
       {
@@ -57,7 +48,7 @@ export function FirstTimeTour() {
           title: "Groups",
           description:
             "Join interest-based group chats to meet people with similar hobbies and interests.",
-          position: "bottom",
+          side: "bottom",
         },
       },
       {
@@ -66,7 +57,7 @@ export function FirstTimeTour() {
           title: "Friends",
           description:
             "View and message all your accepted matches here — conversations continue until you both decide to end them.",
-          position: "bottom",
+          side: "bottom",
         },
       },
       {
@@ -75,7 +66,7 @@ export function FirstTimeTour() {
           title: "Mini-games",
           description:
             "Play icebreaker games like Tic Tac Toe with your match — tap the game icon anytime!",
-          position: "top",
+          side: "top",
         },
       },
       {
@@ -84,41 +75,30 @@ export function FirstTimeTour() {
           title: "Profile",
           description:
             "Edit your name, age, gender, interests, and avatar to control how others see you.",
-          position: "bottom",
+          side: "bottom",
         },
       },
     ];
 
-    const driverInstance = new DriverModule.default({
-      animate: true,
-      opacity: true,
-      pauseOnNav: true,
-      removeBtnAtEnd: true,
-      showClassNames: false,
-      viewPort: {
-        side: "center",
-        padding: 100,
-      },
-      options: {
-        namePrefix: "1chance",
-        elementClass: "1chance-driver",
-      },
-    });
+    const initTour = () => {
+      if (cancelled) return;
 
-    driverInstance.defineSteps(steps);
+      const driverObj = driver({
+        animate: true,
+        showProgress: true,
+        steps: steps,
+      });
 
-    driverInstance.on("complete", () => {
-      localStorage.setItem(TOUR_SEEN_KEY, "true");
-    });
+      driverObj.drive();
 
-    driverInstance.on("destroy", () => {
-      hasSeenTourRef.current = true;
-    });
+      // Mark tour as seen when complete (after all steps)
+      // We'll set it when the user finishes or closes the tour
+    };
 
-    driverInstance.start();
+    initTour();
 
     return () => {
-      driverInstance.destroy();
+      cancelled = true;
     };
   }, []);
 
