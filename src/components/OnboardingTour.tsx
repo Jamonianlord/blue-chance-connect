@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User, Users, MessageCircle, ShieldCheck, X } from "lucide-react";
+import { User, Users, MessageCircle, ShieldCheck, Heart, X } from "lucide-react";
 
 const ONBOARDING_KEY = "1chance_onboarding_seen";
 
@@ -28,6 +28,12 @@ const SLIDES: Slide[] = [
     title: "Chat in real time",
     description:
       "Talk freely, share photos, and see when your match is online. Conversations are private between you two.",
+  },
+  {
+    icon: Heart,
+    title: "Discover new people",
+    description:
+      'Tap "Meet" to browse other users who share your interests and personality. Add friends directly from the feed.',
   },
   {
     icon: ShieldCheck,

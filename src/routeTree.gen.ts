@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChatsRouteImport } from './routes/chats'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as MatchRouteImport } from './routes/match'
+import { Route as MeetRouteImport } from './routes/meet'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -49,6 +50,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const MatchRoute = MatchRouteImport.update({
   id: '/match',
   path: '/match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetRoute = MeetRouteImport.update({
+  id: '/meet',
+  path: '/meet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/chats': typeof ChatsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/match': typeof MatchRoute
+  '/meet': typeof MeetRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/chats': typeof ChatsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/match': typeof MatchRoute
+  '/meet': typeof MeetRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/chats': typeof ChatsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/match': typeof MatchRoute
+  '/meet': typeof MeetRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/forgot-password'
     | '/match'
+    | '/meet'
     | '/privacy'
     | '/profile'
     | '/reset-password'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/forgot-password'
     | '/match'
+    | '/meet'
     | '/privacy'
     | '/profile'
     | '/reset-password'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/forgot-password'
     | '/match'
+    | '/meet'
     | '/privacy'
     | '/profile'
     | '/reset-password'
@@ -225,6 +237,7 @@ export interface RootRouteChildren {
   ChatsRoute: typeof ChatsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   MatchRoute: typeof MatchRoute
+  MeetRoute: typeof MeetRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/match'
       fullPath: '/match'
       preLoaderRoute: typeof MatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meet': {
+      id: '/meet'
+      path: '/meet'
+      fullPath: '/meet'
+      preLoaderRoute: typeof MeetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatsRoute: ChatsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   MatchRoute: MatchRoute,
+  MeetRoute: MeetRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,

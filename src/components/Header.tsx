@@ -5,7 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, User as UserIcon, MessageCircle, Users } from "lucide-react";
+import { LogOut, User as UserIcon, MessageCircle, Users, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 export function Header() {
@@ -18,11 +18,11 @@ export function Header() {
   const currentChatId = pathname.startsWith("/chat/") ? pathname.replace("/chat/", "") : null;
 
   useEffect(() => {
-    if (!user) { 
-      setPendingCount(0); 
-      setUnreadCount(0); 
+    if (!user) {
+      setPendingCount(0);
+      setUnreadCount(0);
       document.title = "1Chance — Meet someone new, right now";
-      return; 
+      return;
     }
 
     const updateTitle = () => {
@@ -48,7 +48,7 @@ export function Header() {
         .eq("addressee_id", user.id)
         .eq("status", "pending");
       if (!cancelled) setPendingCount(count ?? 0);
-      
+
       const { data: friends, error: friendsError } = await supabase.rpc("get_my_friends");
       if (!friendsError && !cancelled && friends) {
         const totalUnread = friends.reduce((sum, f) => sum + (f.unread_count ?? 0), 0);
@@ -56,16 +56,31 @@ export function Header() {
       }
     };
     load();
-    
+
     const channel = supabase
       .channel(`header:${user.id}`)
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "friendships", filter: `addressee_id=eq.${user.id}` },
-        () => load())
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "friendships", filter: `requester_id=eq.${user.id}` },
-        () => load())
-      .on("postgres_changes",
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "friendships",
+          filter: `addressee_id=eq.${user.id}`,
+        },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "friendships",
+          filter: `requester_id=eq.${user.id}`,
+        },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         async (payload: any) => {
           const msg = payload.new as any;
@@ -85,22 +100,25 @@ export function Header() {
               onClick: (event) => {
                 event.stopPropagation();
                 navigate({ to: `/chat/$chatId`, params: { chatId: msg.chat_id } });
-              }
-            }
+              },
+            },
           });
-        })
+        },
+      )
       .subscribe();
-    
-    return () => { 
-      cancelled = true; 
-      supabase.removeChannel(channel); 
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [user, currentChatId, navigate]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="shrink-0"><Logo /></Link>
+        <Link to="/" className="shrink-0">
+          <Logo />
+        </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           {user ? (
             <>
@@ -116,17 +134,34 @@ export function Header() {
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/groups"><Users className="h-4 w-4" /><span className="hidden sm:inline">Groups</span></Link>
+                <Link to="/meet">
+                  <Heart className="h-4 w-4" />
+                  <span className="hidden sm:inline">Meet</span>
+                </Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/profile"><UserIcon className="h-4 w-4" /><span className="hidden sm:inline">Profile</span></Link>
+                <Link to="/groups">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Groups</span>
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/profile">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Profile</span>
+                </Link>
               </Button>
               <ThemeToggle />
               <Button
-                variant="ghost" size="sm"
-                onClick={async () => { await signOut(); navigate({ to: "/" }); }}
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  await signOut();
+                  navigate({ to: "/" });
+                }}
               >
-                <LogOut className="h-4 w-4" /><span className="hidden sm:inline">Sign out</span>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign out</span>
               </Button>
             </>
           ) : (
@@ -142,5 +177,3 @@ export function Header() {
     </header>
   );
 }
-
-
