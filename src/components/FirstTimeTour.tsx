@@ -87,12 +87,16 @@ export function FirstTimeTour() {
         animate: true,
         showProgress: true,
         steps: steps,
-      });
+        allowClose: true,
+        onDoneClick: () => {
+          localStorage.setItem(TOUR_SEEN_KEY, "true");
+        },
+        onCloseClick: () => {
+          localStorage.setItem(TOUR_SEEN_KEY, "true");
+        },
+      } as { animate: boolean; showProgress: boolean; steps: DriveStep[]; allowClose: boolean; onDoneClick: () => void; onCloseClick: () => void });
 
       driverObj.drive();
-
-      // Mark tour as seen when complete (after all steps)
-      // We'll set it when the user finishes or closes the tour
     };
 
     initTour();
