@@ -697,10 +697,12 @@ function DiscoveryFeed() {
           `(${[...myFriends, ...myBlocks, ...pendingReceived, ...myRequestsSent, user.id].join(",")})`,
         );
 
-      const { data: meetProfiles } = await supabase
+      const { data: meetProfiles } = (await meetDb
         .from("meet_profiles")
         .select("user_id, interests, football_pick, pet_pick, schedule_pick, vibe_pick, completed_at")
-        .not("user_id", "in", `(${[...myFriends, ...myBlocks, user.id].join(",")})`);
+        .not("user_id", "in", `(${[...myFriends, ...myBlocks, user.id].join(",")})`)) as {
+        data: MeetRow[] | null;
+      };
 
       const validCandidateIds = new Set<string>();
       (meetProfiles ?? []).forEach((mp) => {
@@ -713,12 +715,13 @@ function DiscoveryFeed() {
       const hasOtherProfiles = totalMeetProfiles > 0;
 
       const myInterests = myProfile.interests || [];
-      const myMeetProfile = await supabase
+      const myMeetProfile = (await meetDb
         .from("meet_profiles")
         .select("football_pick, pet_pick, schedule_pick, vibe_pick")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .maybeSingle()) as { data: MeetRow | null };
       const myPicks = myMeetProfile.data;
+
 
       let discoverData: DiscoveredUser[] = [];
 
