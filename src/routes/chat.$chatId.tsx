@@ -899,7 +899,13 @@ const send = async () => {
     const { data, error } = await (supabase as any).rpc("send_friend_request", { p_addressee_id: partnerId });
     setFriendBusy(false);
     if (error) {
-      toast.error(error.message);
+      // Handle duplicate key error gracefully
+      if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('already exists')) {
+        toast('Friend request already sent!');
+        setFriendshipStatus("pending_sent");
+        return;
+      }
+      toast.error('Could not send friend request. Try again.');
       return;
     }
     if (data && data[0]) {
