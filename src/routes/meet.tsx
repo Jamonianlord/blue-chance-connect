@@ -975,11 +975,12 @@ function MeetPage() {
     if (!authLoading && user && profile) {
       const checkMeetProfile = async () => {
         setLoadingMeetProfile(true);
-        const { data } = await supabase
+        const { data } = (await meetDb
           .from("meet_profiles")
           .select("completed_at")
           .eq("user_id", user.id)
-          .maybeSingle();
+          .maybeSingle()) as { data: MeetRow | null };
+
 
         if (!data?.completed_at) {
           setOnboardingStep("hero");
