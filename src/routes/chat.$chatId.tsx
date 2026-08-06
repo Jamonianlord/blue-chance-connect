@@ -294,7 +294,7 @@ function ChatPage() {
   const [editContent, setEditContent] = useState("");
   const gamePickerRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const partnerOnline = partnerLastSeen ? new Date(partnerLastSeen).getTime() >= Date.now() - 90_000 : false;
+  const partnerOnline = partnerLastSeen ? new Date(partnerLastSeen).getTime() >= Date.now() - 2 * 60 * 1000 : false;
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

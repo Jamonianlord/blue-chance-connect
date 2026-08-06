@@ -25,7 +25,7 @@ export const Route = createFileRoute("/match")({
   }),
 });
 
-type LookingFor = "male" | "female" | "other";
+type LookingFor = "male" | "female" | "other" | "both";
 
 function MatchPage() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -59,6 +59,7 @@ function MatchPage() {
   useEffect(() => {
     if (profile?.gender === "male") setLookingFor("female");
     else if (profile?.gender === "female") setLookingFor("male");
+    else setLookingFor("both");
   }, [profile]);
 
   const stopSearch = async () => {
@@ -111,8 +112,12 @@ function MatchPage() {
         return;
       }
 
+      const effectiveLookingFor = lookingFor === "both"
+        ? (profile!.gender === "male" ? "female" : "male")
+        : lookingFor;
+
       try {
-        const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: lookingFor });
+        const { data, error } = await supabase.rpc("find_or_wait_match", { _looking_for: effectiveLookingFor });
         if (error) {
           toast.error(error.message);
           await stopSearch();
@@ -205,6 +210,9 @@ function MatchPage() {
     }
 
     const presenceChannel = supabase.channel("presence:online-users");
+    const effectiveLookingFor = lookingFor === "both"
+      ? (profile!.gender === "male" ? "female" : "male")
+      : lookingFor;
     const sync = () => {
       const state = presenceChannel.presenceState();
       setSearchingCount(state ? Object.keys(state).length : 0);
@@ -216,7 +224,7 @@ function MatchPage() {
       .on("presence", { event: "leave" }, sync)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          presenceChannel.track({ searching: true, lookingFor });
+          presenceChannel.track({ searching: true, lookingFor: effectiveLookingFor });
         }
       });
 
@@ -227,7 +235,7 @@ function MatchPage() {
       supabase.removeChannel(presenceChannel);
       if (presenceRef.current === presenceChannel) presenceRef.current = null;
     };
-  }, [searching, user, lookingFor]);
+  }, [searching, user, lookingFor, profile]);
 
 
   if (authLoading || !profile) {
@@ -267,8 +275,8 @@ function MatchPage() {
           <div className="w-full rounded-3xl border border-border bg-card p-8 shadow-xl">
             <h1 className="text-2xl font-bold">Ready when you are, {profile.name}.</h1>
             <p className="mt-1 text-sm text-muted-foreground">Who would you like to meet?</p>
-            <RadioGroup value={lookingFor} onValueChange={(v) => setLookingFor(v as LookingFor)} className="mt-5 grid grid-cols-3 gap-2">
-              {(["male", "female", "other"] as const).map(g => (
+            <RadioGroup value={lookingFor} onValueChange={(v) => setLookingFor(v as LookingFor)} className="mt-5 grid grid-cols-4 gap-2">
+              {(["male", "female", "other", "both"] as const).map(g => (
                 <Label
                   key={g}
                   className={"cursor-pointer rounded-xl border px-3 py-3 text-center text-sm font-medium capitalize transition " +
