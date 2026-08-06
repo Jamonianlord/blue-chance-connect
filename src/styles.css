@@ -334,3 +334,74 @@ html.dark, html.dark body { color-scheme: dark; }
   .btn-pop:hover, .btn-pop:active { transform: none; }
   .spotlight-card { transition: none; }
 }
+
+/* ---- Meet page: premium dark scene ---- */
+@keyframes meet-card-in {
+  0% { opacity: 0; transform: translateY(28px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes meet-chip-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes meet-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+@keyframes meet-step-in {
+  0% { opacity: 0; transform: translateX(28px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes meet-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(59 130 246 / 0.45); }
+  50% { box-shadow: 0 0 0 14px rgb(59 130 246 / 0); }
+}
+
+@utility meet-scene {
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgb(59 130 246 / 0.20), transparent 62%),
+    radial-gradient(760px 480px at 92% 6%, rgb(168 85 247 / 0.16), transparent 60%),
+    #0a0a0f;
+  color: #f5f7ff;
+}
+@utility meet-glass {
+  background: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(255 255 255 / 0.10);
+  backdrop-filter: blur(12px);
+}
+@utility meet-card-in { animation: meet-card-in 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+@utility meet-step-in { animation: meet-step-in 0.32s cubic-bezier(0.16,1,0.3,1) both; }
+@utility meet-chip-pop { animation: meet-chip-pop 0.3s cubic-bezier(0.16,1,0.3,1); }
+@utility meet-shake { animation: meet-shake 0.3s ease-out; }
+@utility meet-pulse-glow { animation: meet-pulse-glow 1.8s ease-out infinite; }
+
+/* Strictness slider */
+@utility meet-range {
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #a855f7);
+  box-shadow: 0 0 18px -2px rgb(59 130 246 / 0.7);
+  outline: none;
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 999px;
+    background: #fff;
+    border: 3px solid #3b82f6;
+    box-shadow: 0 0 16px rgb(59 130 246 / 0.9);
+    cursor: pointer;
+    transition: transform 0.2s ease-out;
+  }
+  &::-webkit-slider-thumb:hover { transform: scale(1.12); }
+  &::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 999px;
+    background: #fff; border: 3px solid #3b82f6; cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meet-card-in, .meet-step-in, .meet-chip-pop, .meet-shake, .meet-pulse-glow { animation: none !important; }
+}
