@@ -1,3 +1,15 @@
 User-agent: *
 Allow: /
-Sitemap: https://1chance.fun/sitemap.xml
+Disallow: /chat
+Disallow: /chats
+Disallow: /profile
+Disallow: /match
+Disallow: /meet
+Disallow: /groups
+Disallow: /groups/
+Disallow: /chat/
+Disallow: /profile/
+Disallow: /match/
+Disallow: /meet/
+
+Sitemap: https://1hance.fun/sitemap.xml
