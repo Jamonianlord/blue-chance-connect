@@ -94,6 +94,31 @@ const PICK_BADGES: Record<string, { emoji: string; label: string }> = {
 
 const PICK_KEYS = ["football_pick", "pet_pick", "schedule_pick", "vibe_pick"] as const;
 
+/**
+ * `meet_profiles` lives outside the generated Supabase types, so it is reached
+ * through a loosely-typed handle. Queries and runtime behaviour are unchanged.
+ */
+type MeetRow = {
+  user_id: string;
+  interests: string[] | null;
+  football_pick: "messi" | "ronaldo" | null;
+  pet_pick: "dog" | "cat" | null;
+  schedule_pick: "early_bird" | "night_owl" | null;
+  vibe_pick: "adventurous" | "chill" | null;
+  completed_at: string | null;
+};
+
+interface LooseBuilder extends PromiseLike<{ data: unknown; error: { message: string } | null }> {
+  select(cols: string): LooseBuilder;
+  eq(col: string, val: string): LooseBuilder;
+  not(col: string, op: string, val: string): LooseBuilder;
+  maybeSingle(): LooseBuilder;
+  upsert(values: Record<string, unknown>): LooseBuilder;
+}
+
+const meetDb = supabase as unknown as { from(table: string): LooseBuilder };
+
+
 const STRICTNESS_LABELS = ["Interests only", "Interests + Vibe", "All picks must match"];
 
 /* ------------------------------------------------------------------ */
