@@ -12,4 +12,4 @@ Disallow: /profile/
 Disallow: /match/
 Disallow: /meet/
 
-Sitemap: https://1hance.fun/sitemap.xml
+Sitemap: https://1chance.fun/sitemap.xml

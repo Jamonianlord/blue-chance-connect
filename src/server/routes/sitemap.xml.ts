@@ -1,4 +1,4 @@
-const BASE_URL = "https://1hance.fun";
+const BASE_URL = "https://1chance.fun";
 
 const PUBLIC_ROUTES = [
   { path: "/", priority: 1.0 },
