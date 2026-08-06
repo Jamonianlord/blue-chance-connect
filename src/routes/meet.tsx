@@ -1013,7 +1013,7 @@ function MeetPage() {
   const completeOnboarding = async () => {
     if (!user) return;
 
-    const { error } = await supabase.from("meet_profiles").upsert({
+    const { error } = await meetDb.from("meet_profiles").upsert({
       user_id: user.id,
       interests,
       football_pick: (picks.football_pick as "messi" | "ronaldo") || null,
