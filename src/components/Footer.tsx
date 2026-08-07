@@ -3,18 +3,20 @@ import { Instagram, Mail, Send } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const socials = [
-  { name: "Telegram", href: "https://t.me/onechanceweb", icon: Send },
-  { name: "Instagram", href: "https://www.instagram.com/1chanceweb/", icon: Instagram },
+  { name: "Telegram", href: "https://t.me/onechanceweb", icon: Send, hover: "hover:text-blue-400" },
+  { name: "Instagram", href: "https://www.instagram.com/1chanceweb/", icon: Instagram, hover: "hover:text-pink-400" },
 ];
 
 export function Footer() {
   return (
     <footer className="border-t border-border py-10">
+      <div aria-hidden className="h-px bg-gradient-to-r from-transparent via-[var(--brand)]/40 to-transparent" />
       <div className="mx-auto max-w-5xl px-4">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <Logo />
-            <p className="mt-3 text-xs text-muted-foreground">© 2026 1Chance</p>
+            <p className="mt-3 text-xs text-muted-foreground">Random. Real. Human.</p>
+            <p className="mt-2 text-xs text-muted-foreground">© 2026 1Chance · Made with ❤️ for real connection</p>
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legal</h4>
@@ -39,8 +41,8 @@ export function Footer() {
             <ul className="mt-3 space-y-2 text-sm">
               {socials.map((social) => (
                 <li key={social.name}>
-                  <a href={social.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                    <social.icon className="h-4 w-4" />
+                  <a href={social.href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-muted-foreground transition-all duration-200 ease-out ${social.hover}`}>
+                    <social.icon className="h-4 w-4" width={16} height={16} />
                     {social.name}
                   </a>
                 </li>
