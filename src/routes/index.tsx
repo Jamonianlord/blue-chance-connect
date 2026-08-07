@@ -48,60 +48,107 @@ function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null
 /** Placeholder — swap for a live Supabase presence count later. */
 const ONLINE_COUNT = 1284;
 
+const TICKER_ITEMS = [
+  "✦ Someone just matched in Lagos",
+  "✦ 3 conversations happening right now",
+  "✦ New match every 4 seconds",
+  "✦ Ahmed connected with someone new",
+  "✦ A friendship just started",
+  "✦ 1,284 people online right now",
+  "✦ Someone's waiting to talk to you",
+  "✦ Vicky met someone unexpected",
+];
+
+const TESTIMONIALS = [
+  { text: "Matched with someone from Abuja in literally 5 seconds. Didn't expect to actually vibe.", handle: "@damola_t" },
+  { text: "This is what Omegle should've been. No weirdos, just real convos.", handle: "@wizzy_official" },
+  { text: "Met my best friend on here last week. Still talking every day 😭", handle: "@vickynwachukwu" },
+];
+
+function TickerStrip() {
+  const items = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  return (
+    <div aria-hidden className="w-full overflow-hidden border-y border-border/40 bg-card/40 py-3">
+      <div className="ticker-run flex w-max gap-10 whitespace-nowrap">
+        {items.map((item, i) => (
+          <span
+            key={i}
+            className="text-xs font-medium uppercase tracking-widest text-muted-foreground"
+          >
+            <span className="text-[var(--accent-amber)]">✦</span>
+            {item.replace("✦", "")}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChatMockup() {
   return (
     <div className="relative mx-auto w-full max-w-sm animate-fade-in-up lg:max-w-md" style={{ animationDelay: "0.4s" }}>
       <div
         aria-hidden
-        className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2rem] blur-2xl"
-        style={{ background: "color-mix(in oklab, var(--brand) 22%, transparent)" }}
+        className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl"
+        style={{
+          background:
+            "conic-gradient(from 200deg at 50% 50%, color-mix(in oklab, var(--brand) 20%, transparent), color-mix(in oklab, var(--accent-amber) 15%, transparent), color-mix(in oklab, var(--brand) 20%, transparent))",
+        }}
       />
-      <div className="rounded-3xl border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
-        {/* header */}
-        <div className="flex items-center gap-3 border-b border-border pb-3">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
-            <Heart className="h-4 w-4" />
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+      <div className="rotate-1 transition-transform duration-500 hover:-rotate-1">
+        <div className="rounded-[2.5rem] border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
+          {/* status bar / notch */}
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div className="h-1 w-8 rounded-full bg-muted/60" />
+            <div className="h-2.5 w-2.5 rounded-full bg-muted/40" />
           </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Someone new</p>
-            <p className="text-xs text-muted-foreground">online now</p>
+          {/* header */}
+          <div className="flex items-center gap-3 border-b border-border pb-3">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
+              <Heart className="h-4 w-4" />
+              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold leading-tight">Someone new</p>
+              <p className="text-xs text-muted-foreground">online now</p>
+            </div>
+            <Star className="ml-auto h-4 w-4 text-[var(--brand)]" />
           </div>
-          <Star className="ml-auto h-4 w-4 text-[var(--brand)]" />
-        </div>
 
-        {/* messages */}
-        <div className="space-y-3 py-4">
-          <div className="flex justify-start">
-            <div className="max-w-[75%] rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-2.5 text-sm">
-              Hey! First time here 👋
+          {/* messages */}
+          <div className="space-y-3 py-4">
+            <div className="flex justify-start">
+              <div className="max-w-[75%] rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-2.5 text-sm">
+                Hey! First time here 👋
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="brand-gradient max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm text-white shadow-sm">
+                Same! What are you into?
+              </div>
+            </div>
+            <div className="flex justify-start">
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-3">
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.15s" }} />
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.3s" }} />
+              </div>
             </div>
           </div>
-          <div className="flex justify-end">
-            <div className="brand-gradient max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm text-white shadow-sm">
-              Same! What are you into?
-            </div>
-          </div>
-          <div className="flex justify-start">
-            <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-3">
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.15s" }} />
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.3s" }} />
-            </div>
-          </div>
-        </div>
 
-        {/* composer */}
-        <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
-          <span className="text-sm text-muted-foreground">Say something…</span>
-          <span className="brand-gradient ml-auto flex h-7 w-7 items-center justify-center rounded-full text-white">
-            <ArrowRight className="h-3.5 w-3.5" />
-          </span>
+          {/* composer */}
+          <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
+            <span className="text-sm text-muted-foreground">Say something…</span>
+            <span className="brand-gradient ml-auto flex h-7 w-7 items-center justify-center rounded-full text-white">
+              <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 function Landing() {
@@ -137,38 +184,18 @@ function Landing() {
             aria-hidden
             className="hero-grid hero-grid-animated pointer-events-none absolute inset-0 -z-10"
           />
-          {/* soft floating blobs */}
+          {/* diagonal line texture, right side only */}
           <div
             aria-hidden
-            className="animate-drift pointer-events-none absolute -left-20 top-24 -z-10 h-64 w-64 rounded-full blur-3xl"
-            style={{ background: "color-mix(in oklab, var(--brand) 18%, transparent)" }}
+            className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-1/2"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, rgba(59,130,246,0.04) 0px, rgba(59,130,246,0.04) 1px, transparent 1px, transparent 40px)",
+              maskImage: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 100%)",
+            }}
           />
-          <div
-            aria-hidden
-            className="animate-drift pointer-events-none absolute -right-16 top-4 -z-10 h-56 w-56 rounded-full blur-3xl"
-            style={{ background: "color-mix(in oklab, var(--brand) 12%, transparent)", animationDelay: "-6s" }}
-          />
-          {/* tiny drifting dots */}
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute left-[15%] top-[20%] -z-10 h-3 w-3 rounded-full bg-[var(--brand)] opacity-40"
-            style={{ animationDelay: "0s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute right-[18%] top-[34%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
-            style={{ animationDelay: "-3s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute left-[22%] bottom-[22%] -z-10 h-2.5 w-2.5 rounded-full bg-[var(--brand-soft)] opacity-60"
-            style={{ animationDelay: "-6s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-pulse-soft pointer-events-none absolute right-[24%] bottom-[30%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
-            style={{ animationDelay: "-2s" }}
-          />
+
 
           <div
             className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-16 sm:pt-24 lg:grid-cols-2 lg:gap-8"
@@ -190,11 +217,15 @@ function Landing() {
                 </span>
                 <br />
                 <span
-                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] text-transparent brand-gradient"
-                  style={{ animationDelay: "0.35s" }}
+                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] italic text-transparent"
+                  style={{
+                    animationDelay: "0.35s",
+                    backgroundImage: "linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%)",
+                  }}
                 >
                   One chance.
                 </span>
+
               </h1>
               <p
                 className="mx-auto mt-6 max-w-xl animate-fade-in-up text-base text-muted-foreground sm:text-lg lg:mx-0"
@@ -243,9 +274,12 @@ function Landing() {
           </div>
         </section>
 
+        {/* Live connection ticker */}
+        <TickerStrip />
+
 
         {/* How it works */}
-        <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
+        <section className="mx-auto max-w-5xl px-4 pb-4 pt-16 reveal" ref={stepsRef}>
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">Three steps, about thirty seconds.</p>
           <ol className="relative mt-10 grid gap-8 sm:grid-cols-3 sm:gap-4">
@@ -272,21 +306,49 @@ function Landing() {
         {/* Features */}
         <section className="mx-auto max-w-5xl px-4 py-16 reveal" ref={featuresRef}>
           <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { icon: Shuffle, title: "Truly random", body: "Every match is a fresh face from users online right now." },
-              { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
-              { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
-            ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+            <div className="card-hover-glow rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] sm:col-span-2">
+              <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 text-amber-400">
+                <Shuffle className="h-6 w-6" />
               </div>
+              <h3 className="text-xl font-semibold">Truly random</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Every match is a fresh face from users online right now.
+              </p>
+              <p className="mt-4 text-xs text-muted-foreground/60">A new match every ~4 seconds</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {[
+                { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
+                { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
+              ].map(({ icon: Icon, title, body }) => (
+                <div key={title} className="card-hover-glow flex-1 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
+                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">{title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Social proof */}
+        <section className="mx-auto max-w-5xl px-4 pb-16">
+          <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+            {TESTIMONIALS.map((t) => (
+              <figure
+                key={t.handle}
+                className="w-[85%] shrink-0 snap-start rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur sm:w-auto"
+              >
+                <blockquote className="text-sm italic text-foreground/80">“{t.text}”</blockquote>
+                <figcaption className="mt-3 text-xs text-[var(--accent-amber)]">{t.handle}</figcaption>
+              </figure>
             ))}
           </div>
         </section>
+
 
         {/* Safety first */}
         <section className="mx-auto max-w-5xl px-4 pt-4 pb-16 reveal" ref={safetyRef}>

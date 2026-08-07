@@ -53,6 +53,10 @@
   --brand-soft: oklch(0.95 0.04 250);
   --brand-dark: oklch(0.18 0.06 260);
 
+  /* Warm signature accent (amber/gold) */
+  --accent-amber: #F59E0B;
+
+
   --primary: var(--brand);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.96 0.015 250);
@@ -80,6 +84,10 @@
   --brand-foreground: oklch(0.14 0.03 260);
   --brand-soft: oklch(0.3 0.06 258);
   --brand-dark: oklch(0.12 0.03 260);
+
+  --accent-amber: #FBBF24;
+
+
 
   --primary: var(--brand);
   --primary-foreground: oklch(0.14 0.03 260);
@@ -452,4 +460,14 @@ body.has-tabbar { padding-bottom: 4rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-grid-animated, .shimmer-sweep { animation: none !important; }
+}
+
+/* ---- Live connection ticker ---- */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@utility ticker-run { animation: ticker-scroll 28s linear infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-run { animation-play-state: paused; }
 }
