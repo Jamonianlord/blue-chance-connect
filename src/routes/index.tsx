@@ -303,21 +303,49 @@ function Landing() {
         {/* Features */}
         <section className="mx-auto max-w-5xl px-4 py-16 reveal" ref={featuresRef}>
           <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { icon: Shuffle, title: "Truly random", body: "Every match is a fresh face from users online right now." },
-              { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
-              { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
-            ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+            <div className="card-hover-glow rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] sm:col-span-2">
+              <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 text-amber-400">
+                <Shuffle className="h-6 w-6" />
               </div>
+              <h3 className="text-xl font-semibold">Truly random</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Every match is a fresh face from users online right now.
+              </p>
+              <p className="mt-4 text-xs text-muted-foreground/60">A new match every ~4 seconds</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {[
+                { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
+                { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
+              ].map(({ icon: Icon, title, body }) => (
+                <div key={title} className="card-hover-glow flex-1 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
+                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-semibold">{title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Social proof */}
+        <section className="mx-auto max-w-5xl px-4 pb-16">
+          <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+            {TESTIMONIALS.map((t) => (
+              <figure
+                key={t.handle}
+                className="w-[85%] shrink-0 snap-start rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur sm:w-auto"
+              >
+                <blockquote className="text-sm italic text-foreground/80">“{t.text}”</blockquote>
+                <figcaption className="mt-3 text-xs text-[var(--accent-amber)]">{t.handle}</figcaption>
+              </figure>
             ))}
           </div>
         </section>
+
 
         {/* Safety first */}
         <section className="mx-auto max-w-5xl px-4 pt-4 pb-16 reveal" ref={safetyRef}>
