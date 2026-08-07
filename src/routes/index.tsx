@@ -184,38 +184,18 @@ function Landing() {
             aria-hidden
             className="hero-grid hero-grid-animated pointer-events-none absolute inset-0 -z-10"
           />
-          {/* soft floating blobs */}
+          {/* diagonal line texture, right side only */}
           <div
             aria-hidden
-            className="animate-drift pointer-events-none absolute -left-20 top-24 -z-10 h-64 w-64 rounded-full blur-3xl"
-            style={{ background: "color-mix(in oklab, var(--brand) 18%, transparent)" }}
+            className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-1/2"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, rgba(59,130,246,0.04) 0px, rgba(59,130,246,0.04) 1px, transparent 1px, transparent 40px)",
+              maskImage: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 100%)",
+            }}
           />
-          <div
-            aria-hidden
-            className="animate-drift pointer-events-none absolute -right-16 top-4 -z-10 h-56 w-56 rounded-full blur-3xl"
-            style={{ background: "color-mix(in oklab, var(--brand) 12%, transparent)", animationDelay: "-6s" }}
-          />
-          {/* tiny drifting dots */}
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute left-[15%] top-[20%] -z-10 h-3 w-3 rounded-full bg-[var(--brand)] opacity-40"
-            style={{ animationDelay: "0s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute right-[18%] top-[34%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
-            style={{ animationDelay: "-3s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-float-slow pointer-events-none absolute left-[22%] bottom-[22%] -z-10 h-2.5 w-2.5 rounded-full bg-[var(--brand-soft)] opacity-60"
-            style={{ animationDelay: "-6s" }}
-          />
-          <div
-            aria-hidden
-            className="animate-pulse-soft pointer-events-none absolute right-[24%] bottom-[30%] -z-10 h-2 w-2 rounded-full bg-[var(--brand)] opacity-30"
-            style={{ animationDelay: "-2s" }}
-          />
+
 
           <div
             className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-16 sm:pt-24 lg:grid-cols-2 lg:gap-8"
