@@ -85,6 +85,10 @@
   --brand-soft: oklch(0.3 0.06 258);
   --brand-dark: oklch(0.12 0.03 260);
 
+  --accent-amber: #FBBF24;
+
+
+
   --primary: var(--brand);
   --primary-foreground: oklch(0.14 0.03 260);
   --secondary: oklch(0.26 0.02 258);
