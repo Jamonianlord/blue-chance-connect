@@ -405,3 +405,51 @@ html.dark, html.dark body { color-scheme: dark; }
 @media (prefers-reduced-motion: reduce) {
   .meet-card-in, .meet-step-in, .meet-chip-pop, .meet-shake, .meet-pulse-glow { animation: none !important; }
 }
+
+/* ---- Site-wide UI polish (header / landing / footer) ---- */
+@utility hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(59 130 246 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(59 130 246 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 75%);
+}
+
+@keyframes grid-pan {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 56px 56px, 56px 56px; }
+}
+@utility hero-grid-animated { animation: grid-pan 24s linear infinite; }
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-140%) skewX(-18deg); }
+  100% { transform: translateX(240%) skewX(-18deg); }
+}
+@utility shimmer-sweep { animation: shimmer-sweep 3s ease-in-out infinite; }
+
+@utility nav-active-underline {
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: -0.5rem;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--brand);
+    box-shadow: 0 2px 8px var(--brand);
+  }
+}
+
+@utility tabbar {
+  transform: translateZ(0);
+  will-change: transform;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+body.has-tabbar { padding-bottom: 4rem; }
+@media (min-width: 768px) { body.has-tabbar { padding-bottom: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-grid-animated, .shimmer-sweep { animation: none !important; }
+}
