@@ -274,6 +274,9 @@ function Landing() {
           </div>
         </section>
 
+        {/* Live connection ticker */}
+        <TickerStrip />
+
 
         {/* How it works */}
         <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
