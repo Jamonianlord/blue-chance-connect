@@ -279,7 +279,7 @@ function Landing() {
 
 
         {/* How it works */}
-        <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
+        <section className="mx-auto max-w-5xl px-4 pb-4 pt-16 reveal" ref={stepsRef}>
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">Three steps, about thirty seconds.</p>
           <ol className="relative mt-10 grid gap-8 sm:grid-cols-3 sm:gap-4">
