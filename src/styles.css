@@ -53,6 +53,10 @@
   --brand-soft: oklch(0.95 0.04 250);
   --brand-dark: oklch(0.18 0.06 260);
 
+  /* Warm signature accent (amber/gold) */
+  --accent-amber: #F59E0B;
+
+
   --primary: var(--brand);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.96 0.015 250);
