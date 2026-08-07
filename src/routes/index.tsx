@@ -133,6 +133,10 @@ function Landing() {
                 "radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent) 0%, transparent 70%)",
             }}
           />
+          <div
+            aria-hidden
+            className="hero-grid hero-grid-animated pointer-events-none absolute inset-0 -z-10"
+          />
           {/* soft floating blobs */}
           <div
             aria-hidden
@@ -176,7 +180,7 @@ function Landing() {
                 Meet a stranger in seconds
               </div>
 
-              <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+              <h1 className="text-balance text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-7xl">
                 <span className="animate-line-reveal inline-block" style={{ animationDelay: "0.05s" }}>
                   One click.
                 </span>
@@ -186,7 +190,7 @@ function Landing() {
                 </span>
                 <br />
                 <span
-                  className="animate-line-reveal inline-block bg-clip-text text-transparent brand-gradient"
+                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] text-transparent brand-gradient"
                   style={{ animationDelay: "0.35s" }}
                 >
                   One chance.
@@ -202,15 +206,17 @@ function Landing() {
 
               {/* Live-feeling stat */}
               <div
-                className="mt-6 flex animate-fade-in-up items-center justify-center gap-2 text-sm text-muted-foreground lg:justify-start"
+                className="mt-6 flex animate-fade-in-up justify-center lg:justify-start"
                 style={{ animationDelay: "0.58s" }}
               >
-                <span className="relative flex h-2.5 w-2.5" aria-hidden>
-                  <span className="animate-pulse-soft absolute inline-flex h-full w-full rounded-full bg-green-500" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-                </span>
-                <span>
-                  <span className="font-semibold text-foreground">{ONLINE_COUNT.toLocaleString()}</span> people online right now
+                <span className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-sm text-green-400">
+                  <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                    <span className="motion-safe:animate-pulse-soft absolute inline-flex h-full w-full rounded-full bg-green-500" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+                  </span>
+                  <span>
+                    <span className="font-semibold">{ONLINE_COUNT.toLocaleString()}</span> people online right now
+                  </span>
                 </span>
               </div>
 
@@ -221,7 +227,7 @@ function Landing() {
                 <Button
                   size="lg"
                   onClick={start}
-                  className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white hover:opacity-95 sm:w-auto"
+                  className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white transition-all duration-200 ease-out hover:opacity-95 hover:shadow-[0_0_24px_rgba(59,130,246,0.4)] sm:w-auto"
                 >
                   Start chatting <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
@@ -242,22 +248,22 @@ function Landing() {
         <section className="mx-auto max-w-5xl px-4 pb-4 reveal" ref={stepsRef}>
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">Three steps, about thirty seconds.</p>
-          <ol className="mt-8 grid gap-4 sm:grid-cols-3">
+          <ol className="relative mt-10 grid gap-8 sm:grid-cols-3 sm:gap-4">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-[16.6%] right-[16.6%] top-8 hidden border-t-2 border-dashed border-border sm:block"
+            />
             {[
               { icon: UserPlus, step: "1", title: "Sign up", body: "Name, age and gender. That's the whole form." },
               { icon: Shuffle, step: "2", title: "Get matched", body: "We pair you with someone online right now." },
               { icon: MessageCircle, step: "3", title: "Start chatting", body: "Say hi. Not clicking? Tap Next for a new match." },
             ].map(({ icon: Icon, step, title, body }) => (
-              <li
-                key={step}
-                className="card-hover-glow relative rounded-2xl border border-border bg-card p-6 shadow-sm"
-              >
-                <span className="absolute right-5 top-4 text-4xl font-extrabold text-[var(--brand-soft)]">{step}</span>
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
-                  <Icon className="h-5 w-5" />
+              <li key={step} className="relative flex flex-col items-center text-center">
+                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)] ring-2 ring-[var(--brand)]/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                  <Icon className="h-6 w-6" width={24} height={24} />
                 </div>
-                <h3 className="text-lg font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+                <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+                <p className="mt-1 max-w-xs text-sm text-muted-foreground">{body}</p>
               </li>
             ))}
           </ol>
@@ -271,8 +277,8 @@ function Landing() {
               { icon: MessageCircle, title: "Real-time chat", body: "Text and images with typing indicators — like talking in person." },
               { icon: ShieldCheck, title: "Safe by design", body: "Report or block anyone, anytime, in one tap." },
             ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
+              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-semibold">{title}</h3>
@@ -292,8 +298,8 @@ function Landing() {
               { icon: MessageCircle, title: "Anonymous by default", body: "No public profile, no feed, no history. Just this chat." },
               { icon: Zap, title: "You're in control", body: "End the chat whenever you want. No questions asked." },
             ].map(({ icon: Icon, title, body }) => (
-              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 shadow-sm text-center">
-                <div className="mx-auto mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
+              <div key={title} className="card-hover-glow rounded-2xl border border-border bg-card p-6 text-center shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]">
+                <div className="mx-auto mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-semibold">{title}</h3>
@@ -315,7 +321,11 @@ function Landing() {
               className="animate-pulse-soft pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-white/10 blur-2xl"
               style={{ animationDelay: "-2s" }}
             />
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Someone's waiting to talk.</h2>
+            <span
+              aria-hidden
+              className="shimmer-sweep pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+            />
+            <h2 className="relative text-2xl font-bold tracking-tight sm:text-3xl">Someone's waiting to talk.</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-white/80">One click is all it takes to meet them.</p>
             <Button
               size="lg"
