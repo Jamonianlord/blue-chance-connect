@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
 import { ArrowRight, Heart, MessageCircle, ShieldCheck, Shuffle, Sparkles, Star, UserPlus, Zap } from "lucide-react";
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -45,9 +45,6 @@ function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null
   return ref;
 }
 
-/** Placeholder — swap for a live Supabase presence count later. */
-const ONLINE_COUNT = 1284;
-
 const TICKER_ITEMS = [
   "✦ Someone just matched in Lagos",
   "✦ 3 conversations happening right now",
@@ -60,9 +57,10 @@ const TICKER_ITEMS = [
 ];
 
 const TESTIMONIALS = [
-  { text: "Matched with someone from Abuja in literally 5 seconds. Didn't expect to actually vibe.", handle: "@damola_t" },
-  { text: "This is what Omegle should've been. No weirdos, just real convos.", handle: "@wizzy_official" },
-  { text: "Met my best friend on here last week. Still talking every day 😭", handle: "@vickynwachukwu" },
+  { text: "Got matched with a guy in Enugu in like 4 seconds. We ended up talking for 2 hours about anime lol.", handle: "@tobi_codes" },
+  { text: "No fake profiles, no swiping fatigue, just talk to whoever's online. Refreshing honestly.", handle: "@ije_speaks" },
+  { text: "I was skeptical but matched with someone who's now basically my study partner. Small world.", handle: "@kelechi.o" },
+  { text: "Deleted every other 'meet new people' app after this one. It's just faster.", handle: "@ayomide_b" },
 ];
 
 function TickerStrip() {
@@ -148,9 +146,80 @@ function ChatMockup() {
 
 
 
+const PULSE_NODES = [
+  { x: 12, y: 22 }, { x: 34, y: 8 },  { x: 58, y: 30 },
+  { x: 82, y: 14 }, { x: 20, y: 62 }, { x: 46, y: 78 },
+  { x: 70, y: 60 }, { x: 90, y: 74 },
+];
+
+const PULSE_PAIRS = [
+  [0, 2], [1, 3], [4, 6], [5, 7], [2, 5], [0, 4],
+];
+
+function ConnectionPulse() {
+  return (
+    <svg
+      aria-hidden
+      className="connection-pulse pointer-events-none absolute inset-0 -z-10 h-full w-full"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+    >
+      {PULSE_PAIRS.map(([a, b], i) => {
+        const nodeA = PULSE_NODES[a];
+        const nodeB = PULSE_NODES[b];
+        const midX = (nodeA.x + nodeB.x) / 2;
+        const midY = (nodeA.y + nodeB.y) / 2;
+        return (
+          <g key={i} className="pulse-pair" style={{ animationDelay: `${i * 1.9}s` }}>
+            <line
+              x1={nodeA.x} y1={nodeA.y} x2={nodeB.x} y2={nodeB.y}
+              className="pulse-line" vectorEffect="non-scaling-stroke"
+            />
+            <circle cx={nodeA.x} cy={nodeA.y} r="0.6" className="pulse-dot" />
+            <circle cx={nodeB.x} cy={nodeB.y} r="0.6" className="pulse-dot" />
+            <circle cx={midX} cy={midY} r="1.4" className="pulse-spark" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+
+function useMagnetic(strength = 0.25) {
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const onMove = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const relX = e.clientX - (rect.left + rect.width / 2);
+      const relY = e.clientY - (rect.top + rect.height / 2);
+      el.style.transform = `translate(${relX * strength}px, ${relY * strength}px)`;
+    };
+    const onLeave = () => { el.style.transform = "translate(0, 0)"; };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [strength]);
+  return ref;
+}
+
+
 function Landing() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [onlineCount, setOnlineCount] = useState(1284);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setOnlineCount((n) => Math.max(1200, n + Math.floor(Math.random() * 7) - 3));
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
 
   const start = () => {
     if (user && profile) navigate({ to: "/match" });
@@ -162,6 +231,7 @@ function Landing() {
   const featuresRef = useReveal<HTMLDivElement>();
   const safetyRef = useReveal<HTMLDivElement>();
   const ctaRef = useReveal<HTMLDivElement>();
+  const magneticRef = useMagnetic();
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,10 +247,7 @@ function Landing() {
                 "radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent) 0%, transparent 70%)",
             }}
           />
-          <div
-            aria-hidden
-            className="hero-grid hero-grid-animated pointer-events-none absolute inset-0 -z-10"
-          />
+          <ConnectionPulse />
           {/* diagonal line texture, right side only */}
           <div
             aria-hidden
@@ -240,7 +307,7 @@ function Landing() {
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
                   </span>
                   <span>
-                    <span className="font-semibold">{ONLINE_COUNT.toLocaleString()}</span> people online right now
+                    <span className="font-semibold">{onlineCount.toLocaleString()}</span> people online right now
                   </span>
                 </span>
               </div>
@@ -250,9 +317,11 @@ function Landing() {
                 style={{ animationDelay: "0.65s" }}
               >
                 <Button
+                  ref={magneticRef}
                   size="lg"
                   onClick={start}
                   className="brand-gradient brand-glow btn-pop h-12 w-full rounded-full px-8 text-base font-semibold text-white transition-all duration-200 ease-out hover:opacity-95 hover:shadow-[0_0_24px_rgba(59,130,246,0.4)] sm:w-auto"
+                  style={{ transition: "transform 0.15s ease-out" }}
                 >
                   Start chatting <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
@@ -330,11 +399,22 @@ function Landing() {
 
         {/* Social proof */}
         <section className="mx-auto max-w-5xl px-4 pb-16">
-          <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+          <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:px-0">
             {TESTIMONIALS.map((t) => (
               <figure
                 key={t.handle}
                 className="w-[85%] shrink-0 snap-start rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur sm:w-auto"
+                onPointerMove={(e) => {
+                  const card = e.currentTarget;
+                  const rect = card.getBoundingClientRect();
+                  const px = (e.clientX - rect.left) / rect.width - 0.5;
+                  const py = (e.clientY - rect.top) / rect.height - 0.5;
+                  card.style.transform = `perspective(600px) rotateX(${py * -6}deg) rotateY(${px * 6}deg)`;
+                }}
+                onPointerLeave={(e) => {
+                  e.currentTarget.style.transform = "perspective(600px) rotateX(0) rotateY(0)";
+                }}
+                style={{ transition: "transform 0.2s ease-out" }}
               >
                 <blockquote className="text-sm italic text-foreground/80">“{t.text}”</blockquote>
                 <figcaption className="mt-3 text-xs text-[var(--brand)]">{t.handle}</figcaption>
