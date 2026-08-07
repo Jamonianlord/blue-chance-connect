@@ -461,3 +461,13 @@ body.has-tabbar { padding-bottom: 4rem; }
 @media (prefers-reduced-motion: reduce) {
   .hero-grid-animated, .shimmer-sweep { animation: none !important; }
 }
+
+/* ---- Live connection ticker ---- */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@utility ticker-run { animation: ticker-scroll 28s linear infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-run { animation-play-state: paused; }
+}
