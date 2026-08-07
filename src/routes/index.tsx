@@ -75,7 +75,7 @@ function TickerStrip() {
             key={i}
             className="text-xs font-medium uppercase tracking-widest text-muted-foreground"
           >
-            <span className="text-[var(--accent-amber)]">✦</span>
+            <span className="text-[var(--brand)]">✦</span>
             {item.replace("✦", "")}
           </span>
         ))}
@@ -90,10 +90,7 @@ function ChatMockup() {
       <div
         aria-hidden
         className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl"
-        style={{
-          background:
-            "conic-gradient(from 200deg at 50% 50%, color-mix(in oklab, var(--brand) 20%, transparent), color-mix(in oklab, var(--accent-amber) 15%, transparent), color-mix(in oklab, var(--brand) 20%, transparent))",
-        }}
+        style={{ background: "color-mix(in oklab, var(--brand) 22%, transparent)" }}
       />
       <div className="rotate-1 transition-transform duration-500 hover:-rotate-1">
         <div className="rounded-[2.5rem] border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
@@ -217,11 +214,8 @@ function Landing() {
                 </span>
                 <br />
                 <span
-                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] italic text-transparent"
-                  style={{
-                    animationDelay: "0.35s",
-                    backgroundImage: "linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%)",
-                  }}
+                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] text-transparent brand-gradient"
+                  style={{ animationDelay: "0.35s" }}
                 >
                   One chance.
                 </span>
@@ -307,7 +301,7 @@ function Landing() {
         <section className="mx-auto max-w-5xl px-4 py-16 reveal" ref={featuresRef}>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="card-hover-glow rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:border-[var(--brand)]/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] sm:col-span-2">
-              <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 text-amber-400">
+              <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--brand-soft)] to-[var(--brand)]/5 text-[var(--brand)]">
                 <Shuffle className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-semibold">Truly random</h3>
@@ -343,7 +337,7 @@ function Landing() {
                 className="w-[85%] shrink-0 snap-start rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur sm:w-auto"
               >
                 <blockquote className="text-sm italic text-foreground/80">“{t.text}”</blockquote>
-                <figcaption className="mt-3 text-xs text-[var(--accent-amber)]">{t.handle}</figcaption>
+                <figcaption className="mt-3 text-xs text-[var(--brand)]">{t.handle}</figcaption>
               </figure>
             ))}
           </div>
