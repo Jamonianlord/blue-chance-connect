@@ -217,11 +217,15 @@ function Landing() {
                 </span>
                 <br />
                 <span
-                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] text-transparent brand-gradient"
-                  style={{ animationDelay: "0.35s" }}
+                  className="animate-line-reveal inline-block bg-clip-text pb-1 text-[1.08em] italic text-transparent"
+                  style={{
+                    animationDelay: "0.35s",
+                    backgroundImage: "linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%)",
+                  }}
                 >
                   One chance.
                 </span>
+
               </h1>
               <p
                 className="mx-auto mt-6 max-w-xl animate-fade-in-up text-base text-muted-foreground sm:text-lg lg:mx-0"
