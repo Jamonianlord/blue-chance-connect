@@ -48,60 +48,107 @@ function useReveal<T extends HTMLElement = HTMLDivElement>(): RefObject<T | null
 /** Placeholder — swap for a live Supabase presence count later. */
 const ONLINE_COUNT = 1284;
 
+const TICKER_ITEMS = [
+  "✦ Someone just matched in Lagos",
+  "✦ 3 conversations happening right now",
+  "✦ New match every 4 seconds",
+  "✦ Ahmed connected with someone new",
+  "✦ A friendship just started",
+  "✦ 1,284 people online right now",
+  "✦ Someone's waiting to talk to you",
+  "✦ Vicky met someone unexpected",
+];
+
+const TESTIMONIALS = [
+  { text: "Matched with someone from Abuja in literally 5 seconds. Didn't expect to actually vibe.", handle: "@damola_t" },
+  { text: "This is what Omegle should've been. No weirdos, just real convos.", handle: "@wizzy_official" },
+  { text: "Met my best friend on here last week. Still talking every day 😭", handle: "@vickynwachukwu" },
+];
+
+function TickerStrip() {
+  const items = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  return (
+    <div aria-hidden className="w-full overflow-hidden border-y border-border/40 bg-card/40 py-3">
+      <div className="ticker-run flex w-max gap-10 whitespace-nowrap">
+        {items.map((item, i) => (
+          <span
+            key={i}
+            className="text-xs font-medium uppercase tracking-widest text-muted-foreground"
+          >
+            <span className="text-[var(--accent-amber)]">✦</span>
+            {item.replace("✦", "")}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChatMockup() {
   return (
     <div className="relative mx-auto w-full max-w-sm animate-fade-in-up lg:max-w-md" style={{ animationDelay: "0.4s" }}>
       <div
         aria-hidden
-        className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2rem] blur-2xl"
-        style={{ background: "color-mix(in oklab, var(--brand) 22%, transparent)" }}
+        className="animate-pulse-soft pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl"
+        style={{
+          background:
+            "conic-gradient(from 200deg at 50% 50%, color-mix(in oklab, var(--brand) 20%, transparent), color-mix(in oklab, var(--accent-amber) 15%, transparent), color-mix(in oklab, var(--brand) 20%, transparent))",
+        }}
       />
-      <div className="rounded-3xl border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
-        {/* header */}
-        <div className="flex items-center gap-3 border-b border-border pb-3">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
-            <Heart className="h-4 w-4" />
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+      <div className="rotate-1 transition-transform duration-500 hover:-rotate-1">
+        <div className="rounded-[2.5rem] border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
+          {/* status bar / notch */}
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div className="h-1 w-8 rounded-full bg-muted/60" />
+            <div className="h-2.5 w-2.5 rounded-full bg-muted/40" />
           </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Someone new</p>
-            <p className="text-xs text-muted-foreground">online now</p>
+          {/* header */}
+          <div className="flex items-center gap-3 border-b border-border pb-3">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
+              <Heart className="h-4 w-4" />
+              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold leading-tight">Someone new</p>
+              <p className="text-xs text-muted-foreground">online now</p>
+            </div>
+            <Star className="ml-auto h-4 w-4 text-[var(--brand)]" />
           </div>
-          <Star className="ml-auto h-4 w-4 text-[var(--brand)]" />
-        </div>
 
-        {/* messages */}
-        <div className="space-y-3 py-4">
-          <div className="flex justify-start">
-            <div className="max-w-[75%] rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-2.5 text-sm">
-              Hey! First time here 👋
+          {/* messages */}
+          <div className="space-y-3 py-4">
+            <div className="flex justify-start">
+              <div className="max-w-[75%] rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-2.5 text-sm">
+                Hey! First time here 👋
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="brand-gradient max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm text-white shadow-sm">
+                Same! What are you into?
+              </div>
+            </div>
+            <div className="flex justify-start">
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-3">
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.15s" }} />
+                <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.3s" }} />
+              </div>
             </div>
           </div>
-          <div className="flex justify-end">
-            <div className="brand-gradient max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm text-white shadow-sm">
-              Same! What are you into?
-            </div>
-          </div>
-          <div className="flex justify-start">
-            <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-muted px-4 py-3">
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.15s" }} />
-              <span className="animate-dot h-1.5 w-1.5 rounded-full bg-muted-foreground" style={{ animationDelay: "0.3s" }} />
-            </div>
-          </div>
-        </div>
 
-        {/* composer */}
-        <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
-          <span className="text-sm text-muted-foreground">Say something…</span>
-          <span className="brand-gradient ml-auto flex h-7 w-7 items-center justify-center rounded-full text-white">
-            <ArrowRight className="h-3.5 w-3.5" />
-          </span>
+          {/* composer */}
+          <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2">
+            <span className="text-sm text-muted-foreground">Say something…</span>
+            <span className="brand-gradient ml-auto flex h-7 w-7 items-center justify-center rounded-full text-white">
+              <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 function Landing() {
